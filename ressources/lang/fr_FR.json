@@ -77,6 +77,28 @@
     "SC_shifumi_draw2": "Hein !? Tu lis dans mes circuits ?",
     "SC_shifumi_draw3": "Je suis quatre univers parallèles devant toi !",
 
-    "BT_delete_label$1" : "Ce message s'autodétruira dans ${duration} secondes"
+    "BT_delete_label$1" : "Ce message s'autodétruira dans ${duration} secondes",
+
+    "MP_GUI_billionViews": " Md de vues",
+    "MP_GUI_millionViews": " M de vues",
+    "MP_GUI_thousandViews": " k vues",
+    "MP_GUI_unitViews": " vues",
+    "MP_GUI_unknownViews": "--- vues",
+    "MP_GUI_shortMonth1": "janv.",
+    "MP_GUI_shortMonth2": "févr.",
+    "MP_GUI_shortMonth3": "mars",
+    "MP_GUI_shortMonth4": "avr.",
+    "MP_GUI_shortMonth5": "mai",
+    "MP_GUI_shortMonth6": "juin",
+    "MP_GUI_shortMonth7": "juil.",
+    "MP_GUI_shortMonth8": "août",
+    "MP_GUI_shortMonth9": "sept.",
+    "MP_GUI_shortMonth10": "oct.",
+    "MP_GUI_shortMonth11": "nov.",
+    "MP_GUI_shortMonth12": "déc.",
+    "MP_GUI_dateFormat$3": "${1day} ${2month} ${3year}",
+    "MP_GIU_soundCalled$1": "Appelé avec la commande [${key}]",
+    "MP_GIU_throughCommand": "Via la commande",
+    "MP_GUI_webLink": "Lien Internet"
 
 }

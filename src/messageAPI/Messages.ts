@@ -1,4 +1,5 @@
 import * as DiscordJs from 'discord.js';
+import botPersonality from '../modules/botPersonality';
 import { deleteMessage } from '../userInteractiveComponents/buttonCommands/deleteMessage';
 
 export default class Messages
@@ -137,7 +138,7 @@ function getMessagePayload(
         else alertContent = `Alert`; //##LANG 
 
         alertEmbed = new DiscordJs.EmbedBuilder()
-        .setColor('#FF006E')
+        .setColor(botPersonality.errorColor as DiscordJs.ColorResolvable)
         .setAuthor({
             iconURL: "https://cdn.discordapp.com/attachments/329613279204999170/970413892792623204/Error_icon.png",
             name: alertContent

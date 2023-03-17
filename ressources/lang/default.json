@@ -77,6 +77,28 @@
     "SC_shifumi_draw2": "What?! Are you reading my circuit boards?",
     "SC_shifumi_draw3": "I'm four parallel universes ahead of you!",
 
-    "BT_delete_label$1" : "This message will be deleted in ${duration} seconds"
+    "BT_delete_label$1" : "This message will be deleted in ${duration} seconds",
+
+    "MP_GUI_billionViews": " B views",
+    "MP_GUI_millionViews": " M views",
+    "MP_GUI_thousandViews": " k views",
+    "MP_GUI_unitViews": " views",
+    "MP_GUI_unknownViews": "--- views",
+    "MP_GUI_shortMonth1": "Jan",
+    "MP_GUI_shortMonth2": "Feb",
+    "MP_GUI_shortMonth3": "Mar",
+    "MP_GUI_shortMonth4": "Apr",
+    "MP_GUI_shortMonth5": "May",
+    "MP_GUI_shortMonth6": "Jun",
+    "MP_GUI_shortMonth7": "Jul",
+    "MP_GUI_shortMonth8": "Aug",
+    "MP_GUI_shortMonth9": "Sep",
+    "MP_GUI_shortMonth10": "Oct",
+    "MP_GUI_shortMonth11": "Nov",
+    "MP_GUI_shortMonth12": "Dec",
+    "MP_GUI_dateFormat$3": "${1day} ${2month} ${3year}",
+    "MP_GIU_soundCalled$1": "Called with command [${key}]",
+    "MP_GIU_throughCommand": "Through command",
+    "MP_GUI_webLink": "Web link"
 
 }

@@ -7,6 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start:dev": "npx nodemon",
     "build": "rimraf ./build && tsc",
+    "clear": "rimraf ./build",
     "start:build": "npm run build && node build/index.js",
     "start": "node build/index.js",
     "script:refresh": "node build/scripts/updateCommands.js",

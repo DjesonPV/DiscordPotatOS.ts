@@ -64,7 +64,6 @@ export class Tracklist extends EventEmitter{
     }
 
     destroy(){
-        this.removeAllListeners();
         this.list = [];
     }
 }

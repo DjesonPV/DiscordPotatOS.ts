@@ -51,6 +51,10 @@ export default class AudioPlayer extends EventEmitter {
         if (unpaused) this.emit('unmute');
     }
 
+    get subscription () {
+        return this.audioPlayer;
+    }
+
     private async onStateChange(oldState: DiscordJsVoice.AudioPlayerState, newState: DiscordJsVoice.AudioPlayerState) {
         switch (getStatusFromStates(oldState, newState, this.isPaused)) {
             case Status.Idle:
@@ -76,6 +80,10 @@ export default class AudioPlayer extends EventEmitter {
                 break;
             default: // ignore
         }
+    }
+
+    destroy(){
+        this.audioPlayer.stop(false);
     }
 
 }

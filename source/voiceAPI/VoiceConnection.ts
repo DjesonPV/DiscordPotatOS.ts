@@ -41,6 +41,22 @@ export default class VoiceConnection extends EventEmitter {
         );
     }
 
+    get guildId () {
+        return this.voiceConnection.joinConfig.guildId;
+    }
+
+    get channelId () {
+        return this.voiceConnection.joinConfig.channelId;
+    }
+
+    destroy(adapterAvailable?: boolean | undefined) {
+        this.voiceConnection.destroy(adapterAvailable);
+    }
+
+    get destroyed () {
+        return this.voiceConnection.state.status === DiscordJsVoice.VoiceConnectionStatus.Destroyed;
+    }
+
     private async onStateChange(oldState: DiscordJsVoice.VoiceConnectionState, newState: DiscordJsVoice.VoiceConnectionState) {
         switch (getStatusFromStates(oldState, newState)) {
             case Status.Disconnect:
@@ -58,11 +74,11 @@ export default class VoiceConnection extends EventEmitter {
                 }
                 catch (error) // It must have been disconnected from VoiceChannel by an admin, or finished
                 {
-                    /*<<< Destroy >>>*/
+                    this.voiceConnection.destroy();
                 }
                 break;
             case Status.Destroyed:
-                /*<<< Clean finish and remove the subscription from the Map >>>*/
+                    this.emit("destroyed");
                 break;
             case Status.Connecting:
                 try // Try to get Ready

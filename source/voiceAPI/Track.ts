@@ -12,14 +12,12 @@ export enum TrackType {
     Unknown = 4
 }
 
-enum TrackStatus {
+export enum TrackStatus {
     DataReady = "dataReady",
     AudioReady = "audioReady"
 }
 
 export class Track extends EventEmitter {
-
-    audio:DiscordJsVoice.AudioResource<null> | null = null;
     data: TrackInfo;
     isDataReady = false;
     id: DiscordJs.Snowflake;
@@ -65,8 +63,7 @@ export class Track extends EventEmitter {
     async createAudioResource() {
         if (this.type === TrackType.File) {
             createAudioFileResource(this.query).then( audio => {
-                this.audio = audio;
-                this.emit(TrackStatus.AudioReady);
+                this.emit(TrackStatus.AudioReady, audio);
             }, (_)=> {
                 this.data = fetchFailedInfo(this.data);
                 this.failed = true;
@@ -74,8 +71,7 @@ export class Track extends EventEmitter {
             });
         } else if (this.url !== null){
             createAudioTrackResource(this.url).then( audio => {
-                this.audio = audio;
-                this.emit(TrackStatus.AudioReady);
+                this.emit(TrackStatus.AudioReady, audio);
             }, (_)=> {
                 this.data = fetchFailedInfo(this.data);
                 this.failed = true;

@@ -98,7 +98,7 @@
     "MP_GUI_shortMonth12": "déc.",
     "MP_GUI_dateFormat$3": "${1day} ${2month} ${3year}",
     "MP_GIU_soundCalled$1": "Appelé avec la commande [${key}]",
-    "MP_GIU_throughCommand": "Via la commande",
+    "MP_GUI_throughCommand": "Via la commande",
     "MP_GUI_webLink": "Lien Internet"
 
 }

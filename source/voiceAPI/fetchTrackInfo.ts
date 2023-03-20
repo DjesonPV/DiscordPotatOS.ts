@@ -3,6 +3,8 @@ import * as RadioGarden from "../modules/RadioGarden";
 //import favcolor from 'favcolor';
 
 import * as DiscordJs from 'discord.js';
+import {Track, TrackType} from "./Track";
+
 import { promisify } from "node:util";
 import Lang from "../Lang";
 import botPersonality from "../modules/botPersonality";
@@ -18,24 +20,138 @@ type soundDescription = {
     thumbnail: string | undefined
 }
 
-export type InfoFormat = {
-    isLive: boolean,
+type InfoFormat = {
     author: DiscordJs.EmbedAuthorOptions,
     color: DiscordJs.ColorResolvable,
     description: string,
     title: string,
-    thumbnail: string
+    thumbnail: string | null,
     url: string | null,
     playlistDescription: string,
     playlistTitle: string
 }
 
-export function fetchAudioFileInfo(key: string): InfoFormat {
+export type TrackInfo = {
+    author: DiscordJs.EmbedAuthorOptions,
+    color: DiscordJs.ColorResolvable,
+    description: string,
+    title: string,
+    thumbnail: string,
+    url: string | null,
+    playlistDescription: string,
+    playlistTitle: string
+}
+
+
+export async function fetchTrackInfo (track:Track) {
+    switch (track.type) {
+        case TrackType.File:
+            return curateInfo(fetchAudioFileInfo(track.query));
+        case TrackType.LocalRadio:
+            return curateInfo(fetchLocalRadioInfo(track.query));
+        case TrackType.Radio:
+            if (track.url === null) throw new Error("FetchAudioInfo:\n•no url Radio");
+            return curateInfo(await fetchRadioGardenInfo(track.url, track.query));
+        case TrackType.Track:
+            if (track.url === null) throw new Error("FetchAudioInfo:\n• no track URL");
+            const [data, isLive] = await fetchAudioTrackInfo(track.url, track.query);
+            track.isLive = isLive;
+            return curateInfo(data);
+        case TrackType.Unknown:
+        default:
+            if (track.url === null) throw new Error("FetchAudioInfo:\n• no URL");
+            return curateInfo(failedYTDLInfo(track.url));
+    };
+}
+
+function curateInfo(info:InfoFormat):TrackInfo{
+    return {
+        author:{
+            name: info.author.name.substring(0,256),
+            iconURL: info.author.iconURL ?? botPersonality.icon,
+            url: info.author.url
+        },
+        color: info.color,
+        description: info.description.substring(0, 4096),
+        title: info.title.substring(0,256),
+        thumbnail: info.thumbnail ?? botPersonality.musicPlayerDefaultThumbnail,
+        url: info.url,
+        playlistDescription: info.playlistDescription.substring(0,100),
+        playlistTitle: info.playlistTitle.substring(0,100)
+    };
+}
+
+/// - - -
+///> Placeholder that display an acknowledge command
+
+export function placeholderInfo(track:Track) {
+
+    let command:string;
+
+    switch (track.type) {
+        case TrackType.File:
+            command = Lang.get("SC_playsound_commandName");
+          break;
+        case TrackType.LocalRadio:
+            command = Lang.get("SC_localRadio_commandName");
+          break;
+        case TrackType.Radio:
+            command = Lang.get("SC_radio_commandName");
+          break;
+        case TrackType.Track:
+        case TrackType.Unknown:
+        default:
+            command = Lang.get("SC_playtrack_commandName");
+    };
+
+    return curateInfo({
+        author: {
+            name: Lang.get("MP_Placeholder_command$2", [command, track.query]),
+            iconURL: botPersonality.icon
+        }, 
+        color: botPersonality.color as DiscordJs.ColorResolvable,
+        description: Lang.get("MP_Placeholder_loading"),
+        title: Lang.get("MP_Placeholder_searching$1", [botPersonality.nickname]),
+        thumbnail: null,
+        url: null,
+        playlistDescription: Lang.get("MP_Placeholder_loading"),
+        playlistTitle: Lang.get("MP_Placeholder_command$2", [command, track.query]),
+    });
+
+}
+
+/// - - -
+///> Fetch Audio Failed modifier
+
+export function fetchFailedInfo(info:TrackInfo):TrackInfo {
+
+    const errorMessage = Lang.get("MP_GUI_audioFetchFailed");
+
+    return {
+        author: {
+            name: info.author.name,
+            iconURL: botPersonality.errorIcon,
+            url: info.author.url
+        },
+        color: botPersonality.errorColor as DiscordJs.ColorResolvable,
+        description: info.description.substring(0, 4096-errorMessage.length).concat(errorMessage),
+        title: info.title,
+        thumbnail: info.thumbnail,
+        url: info.url,
+        playlistDescription: info.playlistDescription,
+        playlistTitle: info.playlistTitle
+    }
+}
+
+
+/// - - -
+///> fecthInfo
+
+function fetchAudioFileInfo(key: string): InfoFormat {    
     const file = soundlist[key];
     if (file === undefined) throw new Error("FetchAudioInfo:\n• file wrong key");
 
     return {
-        isLive: false,
         author: {
             name: Lang.get("MP_GIU_soundCalled$1", [key]),
             iconURL: botPersonality.icon
@@ -43,14 +159,14 @@ export function fetchAudioFileInfo(key: string): InfoFormat {
         color: botPersonality.color as DiscordJs.ColorResolvable,
         description: file.description,
         title: file.title,
-        thumbnail: file.thumbnail ?? botPersonality.musicPlayerDefaultThumbnail,
+        thumbnail: file.thumbnail ?? null,
         url: null,
-        playlistDescription: Lang.get("MP_GIU_throughCommand"),
+        playlistDescription: Lang.get("MP_GUI_throughCommand"),
         playlistTitle: key,
     };
 }
 
-export async function fetchAudioTrackInfo(url: string, query: string | null): Promise<InfoFormat> {
+async function fetchAudioTrackInfo(url: string , query: string): Promise<[InfoFormat, boolean]> {   
     return await Promise.race([
         promisify(setTimeout)(5000, Promise.reject('FetchAudioInfo:\n• Time Limit passed')),
 
@@ -85,8 +201,6 @@ export async function fetchAudioTrackInfo(url: string, query: string | null): Pr
         const viewCount = metadata.view_count;
 
         const info: InfoFormat = {
-            isLive: isLive,
-
             author: {
                 name: authorName,
                 iconURL: iconURL,
@@ -102,19 +216,18 @@ export async function fetchAudioTrackInfo(url: string, query: string | null): Pr
             playlistTitle: title,
         }
 
-        return info;
+        return [info, isLive];
     },
         function (reason) {
-            if (query === null) return failedYTDLInfo(url);
-            else return failedYoutubeInfo(url, query);
+            if (query === null) return [failedYTDLInfo(url), true];
+            else return [failedYoutubeInfo(url, query), true];
         }
     )
 }
 
-export async function fetchRadioGardenInfo(url: string, query: string): Promise<InfoFormat> {
+async function fetchRadioGardenInfo(url: string, query: string): Promise<InfoFormat> {
     return await RadioGarden.getRadioData(url).then(data => {
         return {
-            isLive: true,
             author: {
                 name: "Radio Garden",
                 url: `https://radio.garden${data.url}`,
@@ -133,11 +246,10 @@ export async function fetchRadioGardenInfo(url: string, query: string): Promise<
     });
 }
 
-export function fetchLocalRadioInfo(url: string, key: string): InfoFormat {
+function fetchLocalRadioInfo(key: string): InfoFormat {
     const radio = localRadio[key];
-    if (radio === undefined) return failedYTDLInfo(url);
+    if (radio === undefined) throw new Error("FetchAudioInfo:\n• failed Local Radio");
     return {
-        isLive: true,
         author: {
             name: radio.name,
             url: radio.name,
@@ -153,11 +265,8 @@ export function fetchLocalRadioInfo(url: string, key: string): InfoFormat {
     };
 }
 
-
 function failedRadioGardenInfo(url: string, query: string): InfoFormat {
     return {
-        isLive: true,
-
         // Data used in the MusicDisplayer Embed
         author: {
             name: `Radio Garden`,
@@ -178,7 +287,6 @@ function failedRadioGardenInfo(url: string, query: string): InfoFormat {
 
 function failedYoutubeInfo(url: string, query: string): InfoFormat {
     return {
-        isLive: true,
         author: {
             name: `YouTube`,
             url: `https://www.youtube.com/`,
@@ -201,8 +309,6 @@ function failedYTDLInfo(url: string): InfoFormat {
 	const favicon = `https://s2.googleusercontent.com/s2/favicons?domain_url=${uri}&sz=48`;
 
 	return {
-		isLive: false,
-
 		// Data used in the MusicDisplayer Embed
 		author: {
 			name: source,

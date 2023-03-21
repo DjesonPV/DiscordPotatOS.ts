@@ -4,14 +4,14 @@ import * as DiscordJsVoice from '@discordjs/voice';
 import VoiceConnection from './VoiceConnection';
 import AudioPlayer from './AudioPlayer';
 import { Tracklist } from './Tracklist';
-import { TrackStatus } from './Track';
+import { Track, TrackStatus } from './Track';
 
 export class Subscription {
 
     private static guildSubscriptions:Map<DiscordJs.Snowflake,Subscription> = new Map(); 
 
-    static get(id:DiscordJs.Snowflake){
-        return this.guildSubscriptions.get(id);
+    static get(guildId:DiscordJs.Snowflake){
+        return this.guildSubscriptions.get(guildId);
     }
 
     static create(interaction:DiscordJs.ChatInputCommandInteraction) {
@@ -73,9 +73,32 @@ export class Subscription {
         Subscription.guildSubscriptions.set(guildId, this);
     }
 
-    isMemberConnected(member:DiscordJs.GuildMember) {
-        return (member?.guild?.id === this.voiceConnection.guildId)
-        && (member?.voice?.channel?.id === this.voiceConnection.channelId);
+    skip() {
+        this.audioPlayer.pause(true);
+        this.tracklist.next();
+        this.audioPlayer.unpause(true);
+    }
+
+    pause() {
+        this.audioPlayer.pause(this.tracklist.now.isLive);
+    }
+
+    resume() {
+        this.audioPlayer.unpause(this.tracklist.now.isLive);
+    }
+
+    playTrackNow(track:Track) {
+        this.audioPlayer.pause(true);
+        this.tracklist.setNow(track);
+        this.audioPlayer.unpause(true);
+    }
+
+
+    isMemberConnected(member:DiscordJs.GuildMember | DiscordJs.APIInteractionGuildMember | null) {
+        const guildMember:DiscordJs.GuildMember = member as DiscordJs.GuildMember;
+
+        return (guildMember?.guild?.id === this.voiceConnection.guildId)
+        && (guildMember?.voice?.channel?.id === this.voiceConnection.channelId);
     }
 
     unsubscribe(){

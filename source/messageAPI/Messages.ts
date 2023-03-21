@@ -107,10 +107,18 @@ export default class Messages
         }
     }
 
+    static editReplyAlert(interaction:DiscordJs.MessageComponentInteraction | DiscordJs.ChatInputCommandInteraction, messageOptions:DiscordJs.BaseMessageOptions) {
+        interaction.editReply(messageOptions);
+    }
+
     static async defer(interaction:DiscordJs.MessageComponentInteraction | DiscordJs.ChatInputCommandInteraction)
     {
         await interaction.deferReply();
     };
+}
+
+export function getAlertMessagePayload(text:string) {
+    return getMessagePayload(text, 0, true);
 }
 
 /// - - -
@@ -141,7 +149,7 @@ function getMessagePayload(
         .setColor(botPersonality.errorColor as DiscordJs.ColorResolvable)
         .setAuthor({
             iconURL: "https://cdn.discordapp.com/attachments/329613279204999170/970413892792623204/Error_icon.png",
-            name: alertContent
+            name: alertContent.substring(0,256)
         })
 
         if (messageOptions.embeds === undefined) 

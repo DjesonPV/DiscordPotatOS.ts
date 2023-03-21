@@ -55,6 +55,10 @@ export default class AudioPlayer extends EventEmitter {
         return this.audioPlayer;
     }
 
+    get paused(){
+        return this.isPaused;
+    }
+
     private async onStateChange(oldState: DiscordJsVoice.AudioPlayerState, newState: DiscordJsVoice.AudioPlayerState) {
         switch (getStatusFromStates(oldState, newState, this.isPaused)) {
             case Status.Idle:

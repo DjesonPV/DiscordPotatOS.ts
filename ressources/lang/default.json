@@ -110,5 +110,26 @@
     "MP_Placeholder_command$2": "/${command} ${query}",
     "MP_Placeholder_loading": "Loading. . .",
     "MP_Placeholder_searching$1": "${botName} are searching data to display",
-    "MP_GUI_audioFetchFailed": "\n\n```diff\n- Failed to play this media, please check the source or retry\n```"
+    "MP_GUI_audioFetchFailed": "\n\n```diff\n- Failed to play this media, please check the source or retry\n```",
+
+    "MP_Button_playLabel": "Play",
+    "MP_Button_pauseLabel": "Pause",
+    "MP_Button_startLabel": "Go",
+    "MP_Button_ejectLabel": "Eject",
+    "MP_Button_playEmoji": "▶",
+    "MP_Button_pauseEmoji": "⏸",
+    "MP_Button_startEmoji": "▶",
+    "MP_Button_ejectEmoji": "⏏",
+    "MP_Button_displayLabel$1": "${botName} Audio Player",
+    "MP_Button_displayEmoji": "🎧",
+    "MP_Button_stopLabel:": "Stop",
+    "MP_Button_stopEmoji": "◻",
+    "MP_Button_stopYesLabel": "Stop and delete the current playlist",
+    "MP_Button_stopYesEmoji": "❕",
+    "MP_Button_stopNoLabel": "Keep playing",
+    "MP_Button_stopNoEmoji": "🎧",
+    "MP_Button_stopQuestion": "Do you really wish to stop the Music Player?",
+    "MP_Button_stopRoger": "Roger that",
+    "MP_failedToExecuteCommand$1": "You must join a voice channel (or be in the same than ${botName}) in this Guild to use that command",
+    "MP_footer$3": "__________________________________________\n${botName} • ${guildName} > ${channelName}"
 }

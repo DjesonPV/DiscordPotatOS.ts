@@ -131,5 +131,14 @@
     "MP_Button_stopQuestion": "Do you really wish to stop the Music Player?",
     "MP_Button_stopRoger": "Roger that",
     "MP_failedToExecuteCommand$1": "You must join a voice channel (or be in the same than ${botName}) in this Guild to use that command",
-    "MP_footer$3": "__________________________________________\n${botName} • ${guildName} > ${channelName}"
+    "MP_footer$3": "__________________________________________\n${botName} • ${guildName} > ${channelName}",
+    "MP_Playlist_placeholder$1": "Show playlist [${nb}]",
+    "MP_Playlist_question": "What do want to do with this playlist track?",
+    "MP_Playlist_cancelLabel": "Cancel",
+    "MP_Playlist_cancelEmoji": "🔙",
+    "MP_Playlist_nextLabel": "Move to the top of the playlist",
+    "MP_Playlist_nextEmoji": "🔝",
+    "MP_Playlist_removeLabel": "Remove from the playlist",
+    "Mp_Playlist_removeEmoji": "🗑"
+
 }

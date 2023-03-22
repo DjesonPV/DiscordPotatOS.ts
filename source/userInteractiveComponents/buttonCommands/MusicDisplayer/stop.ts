@@ -6,23 +6,12 @@ import botPersonality from '../../../modules/botPersonality';
 import { CallableButtonCommandType } from '../../userInteractiveCommandType';
 
 import { Subscription } from '../../../voiceAPI/Subscription';
+import { followOnInteraction } from '../../followOnInteraction';
+
+import { stopYes } from './stopYES';
+import { stopNo } from './stopNO';
 
 const identifier = 'PotatOSMusicDisplayerStop'; 
-
-const identifierYES = 'PotatOSMusicDisplayerStopYESSTOPIT';
-const identifierNO = 'PotatOSMusicDisplayerStopDONOT';
-
-const buttonCollector = (interaction:DiscordJs.ButtonInteraction) => {
-    return interaction.message.createMessageComponentCollector({ 
-        filter: (filteredInteraction) => {
-            return ( filteredInteraction.isButton() &&
-                (filteredInteraction.user.id === interaction.user.id) &&
-                ((filteredInteraction.customId === identifierYES) || (filteredInteraction.customId === identifierNO)))
-            ;
-        },
-        max: 1
-    });
-}
 
 export const stop: CallableButtonCommandType =
 {
@@ -40,51 +29,35 @@ export const stop: CallableButtonCommandType =
         const guildId = interaction.guildId;
         if (guildId == null) throw new Error("MusicDisplayer Button Stop no guildId");
         const subscription = Subscription.get(guildId);
-        if (subscription !== undefined && subscription.isMemberConnected(interaction.member)) {
+        if (subscription === undefined || !subscription.isMemberConnected(interaction.member)) {
+            interaction.deferUpdate();
+            return;
+        }
         
-            Messages.reply(interaction, {
-                content: Lang.get("MP_Button_stopQuestion"),
-                components: [stopButtonActionRow]
-            }, 0, true);
+        Messages.reply(interaction, {
+            content: Lang.get("MP_Button_stopQuestion"),
+            components: [new DiscordJs.ActionRowBuilder<DiscordJs.ButtonBuilder>().addComponents(stopYes.button, stopNo.button)]
+        }, 0, false, true);
 
-            const collector = buttonCollector(interaction);
-            
-            collector.once('collect', collectedInteraction => {
-                collectedInteraction.deferUpdate();
+        followOnInteraction(interaction, [stopYes.identifier, stopNo.identifier], interaction.isButton, (collectedInteraction) => {
+            collectedInteraction.deferUpdate();
+            if(subscription.isMemberConnected(interaction.member)) { //the user might disconnect between the two button presses
+                if (collectedInteraction.customId === stopYes.identifier) subscription.unsubscribe();
+                
+                Messages.editReply(interaction,{
+                    content: Lang.get("MP_Button_stopRoger"),
+                    components: []
+                },);
+            } else {
+                const messageOptions = getAlertMessagePayload(Lang.get("MP_failedToExecuteCommand$1", [botPersonality.nickname]));
+                messageOptions.content = "";
+                messageOptions.components= [];
 
-                if(subscription.isMemberConnected(interaction.member)) { //the user might disconnect between the two button presses
-                    if (collectedInteraction.customId === identifierYES) subscription.unsubscribe();
-                    
-                    Messages.editReplyAlert(interaction,{
-                        content: Lang.get("MP_Button_stopRoger"),
-                        components: []
-                    });
-                } else {
-                    const messageOptions = getAlertMessagePayload(Lang.get("MP_failedToExecuteCommand$1", [botPersonality.nickname]));
-                    messageOptions.content = "";
-                    messageOptions.components= [];
-
-                    Messages.editReplyAlert(interaction, messageOptions);
-                }
-            })
-        } 
+                Messages.editReply(interaction, messageOptions);
+            };
+        })
+        
         interaction.deferUpdate();
     },
     identifier: identifier
 };
-
-const buttonYES = new DiscordJs.ButtonBuilder()
-    .setCustomId(identifierYES)
-    .setLabel(Lang.get("MP_Button_stopYesLabel"))
-    .setStyle(DiscordJs.ButtonStyle.Danger)
-    .setEmoji(Lang.get("MP_Button_stopYesEmoji"))
-;
-
-const buttonNO = new DiscordJs.ButtonBuilder()
-    .setCustomId(identifierNO)
-    .setLabel(Lang.get("MP_Button_stopNoLabel"))
-    .setStyle(DiscordJs.ButtonStyle.Secondary)
-    .setEmoji(Lang.get("MP_Button_stopNoEmoji"))
-;
-
-const stopButtonActionRow = new DiscordJs.ActionRowBuilder<DiscordJs.ButtonBuilder>().addComponents(buttonYES, buttonNO);

@@ -61,20 +61,61 @@ export default class Messages
     /// - - -
     ///> REPLY TO INTERRACTION
 
+    static async replyAlert(
+        interaction:DiscordJs.MessageComponentInteraction | DiscordJs.ChatInputCommandInteraction,
+        messageOptions:DiscordJs.InteractionReplyOptions | string
+    ) {
+
+        const messagePayload: DiscordJs.InteractionReplyOptions = getMessagePayload(messageOptions, 0, true);
+        messagePayload.ephemeral = true;
+
+        if (interaction.replied)
+            await interaction.followUp(messagePayload);
+        else if (interaction.deferred)
+        {
+            await interaction.followUp('Alert!');
+            await interaction.followUp(messagePayload);
+        }
+        else await interaction.reply(messagePayload);
+
+    }
+
+    static async replyEphemeral(
+        interaction:DiscordJs.MessageComponentInteraction | DiscordJs.ChatInputCommandInteraction,
+        messageOptions:DiscordJs.InteractionReplyOptions | string,
+        newReply:boolean = false
+    ) {
+
+        if (typeof(messageOptions) === "string") messageOptions = {content: messageOptions}
+
+        messageOptions.ephemeral = true;
+
+        if (interaction.replied) {
+            if (newReply) interaction.followUp(messageOptions);
+            else interaction.editReply(messageOptions);
+        } else if (interaction.deferred)
+        {
+            interaction.followUp(messageOptions);
+        }
+        
+        else interaction.reply(messageOptions);
+    }
+  
     static async reply(
         interaction:DiscordJs.MessageComponentInteraction | DiscordJs.ChatInputCommandInteraction,
-        messageOptions:DiscordJs.BaseMessageOptions | string,
+        messageOptions:DiscordJs.InteractionReplyOptions | string,
         duration:number = 0,
-        isAlert:boolean = false
+        isAlert:boolean = false,
+        isEphemeral: boolean = false,
     ):Promise<void>
     {
 
-        if (isAlert) duration = 0;
+        if (isAlert || isEphemeral) duration = 0;
         // Because it will be ephemeral
 
-        const messagePayload:DiscordJs.InteractionReplyOptions = getMessagePayload(messageOptions,duration,isAlert);
+        const messagePayload:DiscordJs.InteractionReplyOptions = getMessagePayload(messageOptions, duration, isAlert);
 
-        if (isAlert)
+        if (isAlert || isEphemeral)
         {
             messagePayload.ephemeral = true;
 
@@ -96,7 +137,7 @@ export default class Messages
             }
             else if (interaction.deferred)
             {
-                await interaction.editReply(messagePayload)
+                await Messages.editReply(interaction, messagePayload)
                 .then((message:DiscordJs.Message) =>{ if (duration>0) deleteAfterDuration(message, duration); });
             }
             else
@@ -107,8 +148,8 @@ export default class Messages
         }
     }
 
-    static editReplyAlert(interaction:DiscordJs.MessageComponentInteraction | DiscordJs.ChatInputCommandInteraction, messageOptions:DiscordJs.BaseMessageOptions) {
-        interaction.editReply(messageOptions);
+    static editReply(interaction:DiscordJs.MessageComponentInteraction | DiscordJs.ChatInputCommandInteraction, messageOptions:DiscordJs.BaseMessageOptions) {
+        return interaction.editReply(messageOptions);
     }
 
     static async defer(interaction:DiscordJs.MessageComponentInteraction | DiscordJs.ChatInputCommandInteraction)

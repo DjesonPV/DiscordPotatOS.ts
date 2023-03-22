@@ -6,15 +6,19 @@ import { Tracklist } from '../../../voiceAPI/Tracklist';
 
 import { Subscription } from '../../../voiceAPI/Subscription';
 
-import { playlistCancel } from '../../buttonCommands/MusicDisplayer/playlistCancel';
+import { playlistCancel } from '../../buttonCommands/MusicDisplayer/playlistCANCEL';
 import { playlistNext } from '../../buttonCommands/MusicDisplayer/playlistNEXT';
 import { playlistRemove } from '../../buttonCommands/MusicDisplayer/playlistREMOVE';
 import Messages from '../../../messageAPI/Messages';
+import { getAlertMessagePayload } from '../../../messageAPI/Messages';
+import { followOnInteraction } from '../../followOnInteraction';
+
+import botPersonality from '../../../modules/botPersonality';
 
 
 const identifier = 'PotatOSMusicDisplayerPlaylist'; 
 
-export const next: CallableDropdownListCommandType =
+export const playlist: CallableDropdownListCommandType =
 {
     dropdownList: (tracklist:Tracklist) => new DiscordJs.StringSelectMenuBuilder()
         .setCustomId(identifier)
@@ -23,7 +27,7 @@ export const next: CallableDropdownListCommandType =
         .setMinValues(1)
         .addOptions(buildOptions(tracklist))
     ,
-    action: function (interaction)
+    action: async function (interaction)
     {
         const guildId = interaction.guildId;
         if (guildId == null) throw new Error("MusicDisplayer Playlist no guildId");
@@ -43,7 +47,7 @@ export const next: CallableDropdownListCommandType =
         
         const selectedIndex = subscription.tracklist.list.indexOf(selectedTrack);
         
-        Messages.reply(interaction, {
+        const message = await Messages.replyEphemeral(interaction, {
             content: Lang.get("MP_Playlist_question"),
             embeds: [new DiscordJs.EmbedBuilder()
                 .setTitle(`${getDisplayEmoji(selectedIndex, selectedTrack.failed)} ${selectedTrack.data.playlistTitle}`)
@@ -52,7 +56,37 @@ export const next: CallableDropdownListCommandType =
             components: [ new DiscordJs.ActionRowBuilder<DiscordJs.ButtonBuilder>()
                 .addComponents(playlistCancel.button, playlistNext.button, playlistRemove.button)
             ]
-        }, 0, false, true)
+        });
+
+        followOnInteraction(interaction, message, [playlistCancel.identifier, playlistNext.identifier, playlistRemove.identifier], interaction.isButton, (collectedInteraction) =>{
+            collectedInteraction.deferUpdate();
+            if (subscription.isMemberConnected(collectedInteraction.member)) { // the user could disconnect between presses
+                switch (collectedInteraction.customId) {
+                    case playlistNext.identifier:
+                        subscription.tracklist.skipQueueing(selectedId);
+                    break;
+                    case playlistRemove.identifier:
+                        subscription.tracklist.remove(selectedId);
+                    break;
+                    case playlistCancel.identifier:
+                    default:
+                    ;
+                }
+                
+                Messages.update(interaction, {
+                    content: Lang.get("MP_Playlist_requestRoger"),
+                    components: [],
+                    embeds: []
+                });
+
+            } else {
+                const messageOptions = getAlertMessagePayload(Lang.get("MP_failedToExecuteCommand$1", [botPersonality.nickname]));
+                messageOptions.content = "";
+                messageOptions.components= [];
+
+                Messages.update(interaction, messageOptions);
+            }
+        })
 
     },
     identifier: identifier

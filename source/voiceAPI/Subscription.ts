@@ -5,6 +5,7 @@ import VoiceConnection from './VoiceConnection';
 import AudioPlayer from './AudioPlayer';
 import { Tracklist } from './Tracklist';
 import { Track, TrackStatus } from './Track';
+import { MusicDisplayer } from './MusicDisplayer';
 
 export class Subscription {
 
@@ -14,7 +15,7 @@ export class Subscription {
         return this.guildSubscriptions.get(guildId);
     }
 
-    static create(interaction:DiscordJs.ChatInputCommandInteraction) {
+    static create(interaction:DiscordJs.ChatInputCommandInteraction, firstTrack:Track) {
         
         const id = interaction.guild?.id;
         if (id === undefined) throw new Error("ChatInputCommand without a guild id");
@@ -30,7 +31,7 @@ export class Subscription {
 
         } else if ((subscription === undefined) && ((member as DiscordJs.GuildMember).voice?.channel?.id !== undefined)) {
             // member is connected to a voiceChannel but there is no subscription
-            return {subscription: new Subscription(interaction), isNew: true};
+            return {subscription: new Subscription(interaction, firstTrack), isNew: true};
 
         } else {
             return {subscription: undefined, isNew: false};
@@ -40,15 +41,18 @@ export class Subscription {
     voiceConnection:VoiceConnection;
     audioPlayer:AudioPlayer;
     tracklist:Tracklist;
+    musicDisplayer:MusicDisplayer;
 
-    private constructor(interaction:DiscordJs.ChatInputCommandInteraction) {
+    private constructor(interaction:DiscordJs.ChatInputCommandInteraction, firstTrack:Track) {
 
         const guildId = interaction.guild?.id;
         if (guildId == undefined) throw new Error("Subscription received an interraction without a guildId");
 
         this.voiceConnection = new VoiceConnection(interaction);
         this.audioPlayer = new AudioPlayer();
-        this.tracklist = new Tracklist();
+        this.tracklist = new Tracklist(firstTrack);
+
+        this.musicDisplayer = new MusicDisplayer()
 
         this.voiceConnection.subscribe(this.audioPlayer.subscription);
 
@@ -97,12 +101,12 @@ export class Subscription {
     isMemberConnected(member:DiscordJs.GuildMember | DiscordJs.APIInteractionGuildMember | null) {
         const guildMember:DiscordJs.GuildMember = member as DiscordJs.GuildMember;
 
-        return (guildMember?.guild?.id === this.voiceConnection.guildId)
-        && (guildMember?.voice?.channel?.id === this.voiceConnection.channelId);
+        return (guildMember?.guild?.id === this.voiceConnection.joinConfig.guildId)
+        && (guildMember?.voice?.channel?.id === this.voiceConnection.joinConfig.channelId);
     }
 
     unsubscribe(){
-        const guildId = this.voiceConnection.guildId;
+        const guildId = this.voiceConnection.joinConfig.guildId;
         this.audioPlayer.destroy();
         if (!this.voiceConnection.destroyed) this.voiceConnection.destroy();
         this.tracklist.destroy();

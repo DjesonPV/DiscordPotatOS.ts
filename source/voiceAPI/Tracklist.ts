@@ -18,8 +18,9 @@ export class Tracklist extends EventEmitter{
         this.list[0] = track;
     }
 
-    constructor() {
+    constructor(track:Track) {
         super();
+        this.add(track);
     }
 
     add(track:Track) {

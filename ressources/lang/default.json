@@ -139,6 +139,7 @@
     "MP_Playlist_nextLabel": "Move to the top of the playlist",
     "MP_Playlist_nextEmoji": "🔝",
     "MP_Playlist_removeLabel": "Remove from the playlist",
-    "Mp_Playlist_removeEmoji": "🗑"
+    "MP_Playlist_removeEmoji": "🗑",
+    "MP_Playlist_requestRoger": "Roger that.\n You can now dismiss this message"
 
 }

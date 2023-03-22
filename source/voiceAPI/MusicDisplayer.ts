@@ -6,10 +6,15 @@ import { display }   from '../userInteractiveComponents/buttonCommands/MusicDisp
 import { playpause } from '../userInteractiveComponents/buttonCommands/MusicDisplayer/playpause';
 import { next }      from '../userInteractiveComponents/buttonCommands/MusicDisplayer/next';
 import { stop }      from '../userInteractiveComponents/buttonCommands/MusicDisplayer/stop';
+import { playlist } from '../userInteractiveComponents/dropdownList/MusicDisplayer/playlist';
 import botPersonality from '../modules/botPersonality';
 import isStringAnURL from '../modules/isStringAnURL';
+import { Tracklist } from './Tracklist';
 
-class MusicDisplayer {
+import Messages from '../messageAPI/Messages';
+import EventEmitter from "node:events";
+
+export class MusicDisplayer {
 
     guildName: string;
     channelName: string;
@@ -17,15 +22,35 @@ class MusicDisplayer {
     private tracklistRow: DiscordJs.ActionRowBuilder<DiscordJs.StringSelectMenuBuilder> | null = null;
     private buttonRow: DiscordJs.ActionRowBuilder<DiscordJs.ButtonBuilder> = this.updateButtons(false, true, false, true);
     private embed: DiscordJs.EmbedBuilder;
+    private message:DiscordJs.Message | null = null;
+    private textChannel: DiscordJs.BaseGuildTextChannel;
+
+    private timeout:NodeJS.Timeout | null = null;
 
     constructor( voiceNames:{
         guildName: string,
         channelName: string
-    }, firstTrackInfo: TrackInfo) {
+    }, firstTrackInfo: TrackInfo, textChannel:DiscordJs.BaseGuildTextChannel) {
         this.guildName = voiceNames.guildName;
         this.channelName = voiceNames.channelName;
         this.embed = this.updateEmbed(firstTrackInfo);
+        this.textChannel = textChannel;
+    }
 
+    private async updateMessage() {
+        if (this.message == null)
+        this.message = await Messages.print(this.textChannel, {embeds: [this.embed], components:[this.buttonRow]})
+        else {
+            const components:(DiscordJs.ActionRowBuilder<DiscordJs.StringSelectMenuBuilder | DiscordJs.ButtonBuilder>)[] = [this.buttonRow];
+            if (this.tracklistRow !== null) components.push(this.tracklistRow);
+            this.message = await Messages.edit(this.message, {embeds: [this.embed], components: components});
+        }
+        this.timeout = null;
+    }
+
+    private async pushUpdate() {
+        if (this.timeout !== null) clearTimeout(this.timeout);
+        this.timeout = setTimeout(this.updateMessage, 100);
     }
 
     updateButtons(isLive: boolean, isPaused: boolean, hasQueue: boolean, disableAll:boolean = false) {
@@ -36,6 +61,7 @@ class MusicDisplayer {
             next.button(!hasQueue || disableAll),
             stop.button(false)    
         );
+        this.pushUpdate()
         return this.buttonRow;
     }
 
@@ -49,12 +75,13 @@ class MusicDisplayer {
         .setThumbnail(trackInfo.thumbnail)
         .setFooter({text: Lang.get("MP_footer$3", [botPersonality.nickname, this.guildName, this.channelName]).substring(0, 2048)})
         ;
-
+        this.pushUpdate()
         return this.embed;
     }
 
+    updatePlaylist(tracklist:Tracklist) {
+        if (tracklist.hasQueue) return playlist.dropdownList(tracklist);
+        this.pushUpdate();
+        return null;
+    }
 }
-
-
-
-

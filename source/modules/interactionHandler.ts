@@ -45,7 +45,7 @@ export default async function interactionHandler(interaction:DiscordJs.BaseInter
         console.error(error);
 
         if (typeof(error) === 'string')
-        Messages.reply(interaction as DiscordJs.MessageComponentInteraction | DiscordJs.ChatInputCommandInteraction, error);
+        Messages.replyAlert(interaction as DiscordJs.MessageComponentInteraction | DiscordJs.ChatInputCommandInteraction, error);
     }
     
 }

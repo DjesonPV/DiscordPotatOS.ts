@@ -41,12 +41,16 @@ export default class VoiceConnection extends EventEmitter {
         );
     }
 
+    get joinConfig() {
+        return this.voiceConnection.joinConfig
+    }
+
     get guildId () {
-        return this.voiceConnection.joinConfig.guildId;
+        return this.joinConfig.guildId;
     }
 
     get channelId () {
-        return this.voiceConnection.joinConfig.channelId;
+        return this.joinConfig.channelId;
     }
 
     destroy(adapterAvailable?: boolean | undefined) {

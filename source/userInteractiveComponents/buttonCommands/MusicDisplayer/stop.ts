@@ -24,7 +24,7 @@ export const stop: CallableButtonCommandType =
         .setDisabled(disable)
         ;
     },
-    action: function (interaction)
+    action: async function (interaction)
     {
         const guildId = interaction.guildId;
         if (guildId == null) throw new Error("MusicDisplayer Button Stop no guildId");
@@ -34,17 +34,17 @@ export const stop: CallableButtonCommandType =
             return;
         }
         
-        Messages.reply(interaction, {
+        const message = await Messages.replyEphemeral(interaction, {
             content: Lang.get("MP_Button_stopQuestion"),
             components: [new DiscordJs.ActionRowBuilder<DiscordJs.ButtonBuilder>().addComponents(stopYes.button, stopNo.button)]
-        }, 0, false, true);
+        });
 
-        followOnInteraction(interaction, [stopYes.identifier, stopNo.identifier], interaction.isButton, (collectedInteraction) => {
+        followOnInteraction(interaction, message, [stopYes.identifier, stopNo.identifier], interaction.isButton, (collectedInteraction) => {
             collectedInteraction.deferUpdate();
-            if(subscription.isMemberConnected(interaction.member)) { //the user might disconnect between the two button presses
+            if(subscription.isMemberConnected(collectedInteraction.member)) { //the user might disconnect between the two button presses
                 if (collectedInteraction.customId === stopYes.identifier) subscription.unsubscribe();
                 
-                Messages.editReply(interaction,{
+                Messages.update(interaction,{
                     content: Lang.get("MP_Button_stopRoger"),
                     components: []
                 },);
@@ -53,11 +53,10 @@ export const stop: CallableButtonCommandType =
                 messageOptions.content = "";
                 messageOptions.components= [];
 
-                Messages.editReply(interaction, messageOptions);
+                Messages.update(interaction, messageOptions);
             };
         })
         
-        interaction.deferUpdate();
     },
     identifier: identifier
 };

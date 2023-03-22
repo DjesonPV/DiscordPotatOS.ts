@@ -9,7 +9,7 @@ export const playlistRemove: ButtonCommandType = {
         .setCustomId(identifier)
         .setLabel(Lang.get("MP_Playlist_removeLabel"))
         .setStyle(DiscordJs.ButtonStyle.Danger)
-        .setEmoji(Lang.get("Mp_Playlist_removeEmoji"))
+        .setEmoji(Lang.get("MP_Playlist_removeEmoji"))
     ,
     action: ()=>{}, //handled in Playlist DropdownList
     identifier: identifier

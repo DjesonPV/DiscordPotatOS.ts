@@ -52,7 +52,17 @@ export class Subscription {
         this.audioPlayer = new AudioPlayer();
         this.tracklist = new Tracklist(firstTrack);
 
-        this.musicDisplayer = new MusicDisplayer()
+        let channelName: string;
+        const guildName = interaction.guild?.name ?? "...";
+        {
+            const channel = (interaction.client.channels.cache.find(channel => channel.id === this.voiceConnection.joinConfig.channelId))
+            if (channel?.isVoiceBased()) channelName = channel.name;
+            else channelName = "...";
+        }
+
+        if (interaction.channel === null) throw new Error ("Subscription got an interaction without text channel");
+
+        this.musicDisplayer = new MusicDisplayer( guildName, channelName, firstTrack.data, interaction.channel)
 
         this.voiceConnection.subscribe(this.audioPlayer.subscription);
 
@@ -95,6 +105,12 @@ export class Subscription {
         this.audioPlayer.pause(true);
         this.tracklist.setNow(track);
         this.audioPlayer.unpause(true);
+    }
+
+
+    async updateMusicdisplayerEmbed(track:Track) {
+        const channelName = this.
+
     }
 
 

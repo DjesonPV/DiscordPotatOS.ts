@@ -12,29 +12,26 @@ import isStringAnURL from '../modules/isStringAnURL';
 import { Tracklist } from './Tracklist';
 
 import Messages from '../messageAPI/Messages';
-import EventEmitter from "node:events";
 
-export class MusicDisplayer {
-
-    guildName: string;
-    channelName: string;
+export class MusicDisplayer {  
     
+    private guildName:string;
+
     private tracklistRow: DiscordJs.ActionRowBuilder<DiscordJs.StringSelectMenuBuilder> | null = null;
     private buttonRow: DiscordJs.ActionRowBuilder<DiscordJs.ButtonBuilder> = this.updateButtons(false, true, false, true);
     private embed: DiscordJs.EmbedBuilder;
     private message:DiscordJs.Message | null = null;
-    private textChannel: DiscordJs.BaseGuildTextChannel;
+    private textChannel: DiscordJs.TextBasedChannel;
 
     private timeout:NodeJS.Timeout | null = null;
 
-    constructor( voiceNames:{
-        guildName: string,
-        channelName: string
-    }, firstTrackInfo: TrackInfo, textChannel:DiscordJs.BaseGuildTextChannel) {
-        this.guildName = voiceNames.guildName;
-        this.channelName = voiceNames.channelName;
-        this.embed = this.updateEmbed(firstTrackInfo);
+    constructor(
+        guildName:string,
+        channelName: string, 
+        firstTrackInfo: TrackInfo, textChannel:DiscordJs.TextBasedChannel) {
+        this.embed = this.updateEmbed(firstTrackInfo, channelName);
         this.textChannel = textChannel;
+        this.guildName= guildName
     }
 
     private async updateMessage() {
@@ -65,7 +62,7 @@ export class MusicDisplayer {
         return this.buttonRow;
     }
 
-    updateEmbed(trackInfo:TrackInfo) {
+    updateEmbed(trackInfo:TrackInfo, channelName: string) {
         this.embed = new DiscordJs.EmbedBuilder()
         .setAuthor(trackInfo.author)
         .setColor(trackInfo.color)
@@ -73,7 +70,7 @@ export class MusicDisplayer {
         .setTitle(trackInfo.title)
         .setURL(isStringAnURL(trackInfo.url)?trackInfo.url:null)
         .setThumbnail(trackInfo.thumbnail)
-        .setFooter({text: Lang.get("MP_footer$3", [botPersonality.nickname, this.guildName, this.channelName]).substring(0, 2048)})
+        .setFooter({text: Lang.get("MP_footer$3", [botPersonality.nickname, this.guildName, channelName]).substring(0, 2048)})
         ;
         this.pushUpdate()
         return this.embed;

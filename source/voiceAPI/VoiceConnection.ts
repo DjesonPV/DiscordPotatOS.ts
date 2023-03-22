@@ -45,14 +45,6 @@ export default class VoiceConnection extends EventEmitter {
         return this.voiceConnection.joinConfig
     }
 
-    get guildId () {
-        return this.joinConfig.guildId;
-    }
-
-    get channelId () {
-        return this.joinConfig.channelId;
-    }
-
     destroy(adapterAvailable?: boolean | undefined) {
         this.voiceConnection.destroy(adapterAvailable);
     }

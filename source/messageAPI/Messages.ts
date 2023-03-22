@@ -39,7 +39,7 @@ export default class Messages {
     ///> PRINT ON CHANNEL
 
     static async print(
-        channel: DiscordJs.BaseGuildTextChannel,
+        channel: DiscordJs.TextBasedChannel,
         messageOptions: DiscordJs.BaseMessageOptions | string,
         duration: number = 0,
         isAlert: boolean = false

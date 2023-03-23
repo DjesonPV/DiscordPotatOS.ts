@@ -9,7 +9,7 @@ const identifier = 'PotatOSMusicDisplayerPlaypause';
 
 export const playpause: CallableButtonCommandType =
 {
-    button: (paused:boolean, live:boolean, disable:boolean) => {
+    button: (paused:boolean, live:boolean | undefined, disable:boolean) => {
 
         const [label, emoji] = paused?
             ( live? 
@@ -26,7 +26,7 @@ export const playpause: CallableButtonCommandType =
         .setLabel(label)
         .setStyle(DiscordJs.ButtonStyle.Secondary)
         .setEmoji(emoji)
-        .setDisabled(disable);
+        .setDisabled(disable || (live === undefined));
     },
     action: function (interaction)
     {

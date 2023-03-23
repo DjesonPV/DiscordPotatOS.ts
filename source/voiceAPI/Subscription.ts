@@ -6,6 +6,7 @@ import AudioPlayer from './AudioPlayer';
 import { Tracklist } from './Tracklist';
 import { Track, TrackStatus } from './Track';
 import { MusicDisplayer } from './MusicDisplayer';
+import { TrackInfo } from './fetchTrackInfo';
 
 export class Subscription {
 
@@ -108,11 +109,16 @@ export class Subscription {
     }
 
 
-    async updateMusicdisplayerEmbed(track:Track) {
-        const channelName = this.
-
+    async updateMusicdisplayerEmbed(trackData:TrackInfo) {
+        this.musicDisplayer.updateEmbed(trackData, await this.voiceConnection.getChannelName())
     }
 
+    updateMusicdisplayerButton() {
+        const isLive = this.tracklist.now.isLive;
+        const isPaused = this.audioPlayer.paused;
+        const hasQueue = this.tracklist.hasQueue;
+        this.musicDisplayer.updateButtons(isLive, isPaused, hasQueue);
+    }
 
     isMemberConnected(member:DiscordJs.GuildMember | DiscordJs.APIInteractionGuildMember | null) {
         const guildMember:DiscordJs.GuildMember = member as DiscordJs.GuildMember;

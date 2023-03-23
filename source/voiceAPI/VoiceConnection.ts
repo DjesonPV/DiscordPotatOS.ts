@@ -5,6 +5,7 @@ import { promisify } from 'node:util';
 
 export default class VoiceConnection extends EventEmitter {
     private voiceConnection: DiscordJsVoice.VoiceConnection;
+    private guildChannels;
 
     constructor(interaction: DiscordJs.ChatInputCommandInteraction) {
         super();
@@ -15,6 +16,7 @@ export default class VoiceConnection extends EventEmitter {
 
         const channelID = member.voice.channel.id;
         const guildID = member.guild.id;
+        this.guildChannels = member.guild.channels;
 
         this.voiceConnection = DiscordJsVoice.joinVoiceChannel(
             {
@@ -93,6 +95,14 @@ export default class VoiceConnection extends EventEmitter {
         };
     }
 
+    async getChannelName () {
+        const channelId = this.voiceConnection.joinConfig.channelId;
+        if (channelId === null) return null;
+        const channel = await this.guildChannels.fetch(channelId);
+        if (channel === null || !channel.isVoiceBased() === false) return null;
+
+        return channel.name;
+    }
 }
 
 enum Status {

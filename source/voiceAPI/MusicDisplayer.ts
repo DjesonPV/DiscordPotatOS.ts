@@ -22,13 +22,16 @@ export class MusicDisplayer {
     private embed: DiscordJs.EmbedBuilder;
     private message:DiscordJs.Message | null = null;
     private textChannel: DiscordJs.TextBasedChannel;
+    private channelName: string;
 
     private timeout:NodeJS.Timeout | null = null;
 
     constructor(
         guildName:string,
         channelName: string, 
-        firstTrackInfo: TrackInfo, textChannel:DiscordJs.TextBasedChannel) {
+        firstTrackInfo: TrackInfo, textChannel:DiscordJs.TextBasedChannel
+    ) {
+        this.channelName = channelName;
         this.embed = this.updateEmbed(firstTrackInfo, channelName);
         this.textChannel = textChannel;
         this.guildName= guildName
@@ -50,7 +53,7 @@ export class MusicDisplayer {
         this.timeout = setTimeout(this.updateMessage, 100);
     }
 
-    updateButtons(isLive: boolean, isPaused: boolean, hasQueue: boolean, disableAll:boolean = false) {
+    updateButtons(isLive: boolean | undefined, isPaused: boolean, hasQueue: boolean, disableAll:boolean = false) {
         this.buttonRow = new DiscordJs.ActionRowBuilder<DiscordJs.ButtonBuilder>()
         .addComponents(
             display.button(false), 
@@ -62,7 +65,7 @@ export class MusicDisplayer {
         return this.buttonRow;
     }
 
-    updateEmbed(trackInfo:TrackInfo, channelName: string) {
+    updateEmbed(trackInfo:TrackInfo, channelName: string | null) {
         this.embed = new DiscordJs.EmbedBuilder()
         .setAuthor(trackInfo.author)
         .setColor(trackInfo.color)
@@ -70,7 +73,7 @@ export class MusicDisplayer {
         .setTitle(trackInfo.title)
         .setURL(isStringAnURL(trackInfo.url)?trackInfo.url:null)
         .setThumbnail(trackInfo.thumbnail)
-        .setFooter({text: Lang.get("MP_footer$3", [botPersonality.nickname, this.guildName, channelName]).substring(0, 2048)})
+        .setFooter({text: Lang.get("MP_footer$3", [botPersonality.nickname, this.guildName, channelName!==null?channelName:this.channelName]).substring(0, 2048)})
         ;
         this.pushUpdate()
         return this.embed;

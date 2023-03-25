@@ -1,6 +1,6 @@
 import youtubeDl from "youtube-dl-exec";
 import * as RadioGarden from "../modules/RadioGarden";
-//import favcolor from 'favcolor';
+import favcolor from 'favcolor';
 
 import * as DiscordJs from 'discord.js';
 import {Track, TrackType} from "./Track";
@@ -206,7 +206,7 @@ async function fetchAudioTrackInfo(url: string , query: string): Promise<[InfoFo
                 iconURL: iconURL,
                 url: authorURL,
             },
-            color: await getColorFromUrl(url),
+            color: await getColorFromSiteUrl(url),
             description: `${isLive ? `🔴 LIVE` : durationToString(duration)} • ${viewsToString(viewCount)} • ${YYYYMMDDToString(uploadDate)}`,
             title: title,
             thumbnail: thumbnail,
@@ -330,8 +330,32 @@ function failedYTDLInfo(url: string): InfoFormat {
 /// - - -
 /// Color
 
-async function getColorFromUrl(url: string): Promise<DiscordJs.ColorResolvable> {
-    return "#000000";
+async function getColorFromSiteUrl(url: string): Promise<DiscordJs.ColorResolvable> {
+    return new Promise((resolve, reject) => {
+        const cleanURL = url.match(/(?:http|https):\/\/(?:[^\/])+\//)?.[0];
+    
+        const defaultColor = botPersonality.color as DiscordJs.ColorResolvable;
+
+        if (cleanURL === undefined){
+            resolve(defaultColor);
+            return;
+        } 
+        
+        const timeout = setTimeout(()=> {
+            resolve(defaultColor);
+            return;
+        }, 500);
+
+
+    
+        favcolor.fromSiteFavicon(cleanURL).then(color => {
+            clearTimeout(timeout);
+            resolve(color.toHex()  as DiscordJs.ColorResolvable);
+        }, (_) => {
+            clearTimeout(timeout);
+            resolve(defaultColor);
+        });
+    });
 }
 
 /// - - -

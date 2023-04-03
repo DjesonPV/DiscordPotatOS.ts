@@ -346,8 +346,6 @@ async function getColorFromSiteUrl(url: string): Promise<DiscordJs.ColorResolvab
             return;
         }, 500);
 
-
-    
         favcolor.fromSiteFavicon(cleanURL).then(color => {
             clearTimeout(timeout);
             resolve(color.toHex()  as DiscordJs.ColorResolvable);

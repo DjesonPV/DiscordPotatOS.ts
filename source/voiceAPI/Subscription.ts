@@ -12,8 +12,8 @@ export class Subscription {
 
     private static guildSubscriptions:Map<DiscordJs.Snowflake,Subscription> = new Map(); 
 
-    static get(guildId:DiscordJs.Snowflake){
-        return this.guildSubscriptions.get(guildId);
+    static get(guildId:DiscordJs.Snowflake|null){
+        return guildId===null?null:this.guildSubscriptions.get(guildId) ?? null;
     }
 
     static create(interaction:DiscordJs.ChatInputCommandInteraction, firstTrack:Track) {
@@ -26,16 +26,16 @@ export class Subscription {
         const member = interaction.member;
         if (member == null) throw new Error ("ChatInputCommand without a member")
 
-        if (subscription !== undefined && subscription.isMemberConnected(member as DiscordJs.GuildMember)) {
+        if (subscription !== null && subscription.isMemberConnected(member as DiscordJs.GuildMember)) {
             // member connected in the same voiceChannel and there already exist a subscription
             return {subscription: subscription, isNew: false};
 
-        } else if ((subscription === undefined) && ((member as DiscordJs.GuildMember).voice?.channel?.id !== undefined)) {
+        } else if ((subscription === null) && ((member as DiscordJs.GuildMember).voice?.channel?.id !== undefined)) {
             // member is connected to a voiceChannel but there is no subscription
             return {subscription: new Subscription(interaction, firstTrack), isNew: true};
 
         } else {
-            return {subscription: undefined, isNew: false};
+            return {subscription: null, isNew: false};
         }
     }
 

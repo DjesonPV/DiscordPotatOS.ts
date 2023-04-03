@@ -32,7 +32,7 @@ export const playlist: CallableDropdownListCommandType =
         const guildId = interaction.guildId;
         if (guildId == null) throw new Error("MusicDisplayer Playlist no guildId");
         const subscription = Subscription.get(guildId);
-        if (subscription === undefined || !subscription.isMemberConnected(interaction.member)) {
+        if (subscription === null || !subscription.isMemberConnected(interaction.member)) {
             interaction.deferUpdate();
             return;
         }

@@ -29,7 +29,7 @@ export const stop: CallableButtonCommandType =
         const guildId = interaction.guildId;
         if (guildId == null) throw new Error("MusicDisplayer Button Stop no guildId");
         const subscription = Subscription.get(guildId);
-        if (subscription === undefined || !subscription.isMemberConnected(interaction.member)) {
+        if (subscription === null || !subscription.isMemberConnected(interaction.member)) {
             interaction.deferUpdate();
             return;
         }

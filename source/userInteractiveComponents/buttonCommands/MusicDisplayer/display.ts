@@ -25,7 +25,7 @@ export const display: CallableButtonCommandType =
         if (guildId == null) throw new Error("MusicDisplayer Button Display no guildId");
 
         const subscription = Subscription.get(guildId);
-        if (subscription === undefined) {
+        if (subscription === null) {
             Messages.delete(interaction.message);
         } else {
             //subscription.; //#### update displayer

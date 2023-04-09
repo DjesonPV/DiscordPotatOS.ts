@@ -15,26 +15,27 @@ import Messages from '../messageAPI/Messages';
 
 export class MusicDisplayer {  
     
-    private guildName:string;
+    //private guildName:string;
 
     private tracklistRow: DiscordJs.ActionRowBuilder<DiscordJs.StringSelectMenuBuilder> | null = null;
     private buttonRow: DiscordJs.ActionRowBuilder<DiscordJs.ButtonBuilder> = this.updateButtons(false, true, false, true);
     private embed: DiscordJs.EmbedBuilder;
     private message:DiscordJs.Message | null = null;
-    private textChannel: DiscordJs.TextBasedChannel;
-    private channelName: string;
+    //private textChannel: DiscordJs.TextBasedChannel;
+    //private channelName: string;
 
     private timeout:NodeJS.Timeout | null = null;
 
     constructor(
-        guildName:string,
-        channelName: string, 
-        firstTrackInfo: TrackInfo, textChannel:DiscordJs.TextBasedChannel
+        private guildName:string,
+        private channelName: string, 
+        firstTrackInfo: TrackInfo, 
+        private textChannel:DiscordJs.TextBasedChannel
     ) {
-        this.channelName = channelName;
+        //this.channelName = channelName;
         this.embed = this.updateEmbed(firstTrackInfo, channelName);
-        this.textChannel = textChannel;
-        this.guildName= guildName
+        //this.textChannel = textChannel;
+      //  this.guildName= guildName
     }
 
     private async updateMessage() {

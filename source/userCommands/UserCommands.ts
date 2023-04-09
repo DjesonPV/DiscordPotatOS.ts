@@ -12,6 +12,13 @@ import { hide } from "./slashCommands/hide";
 
 import { test } from "./slashCommands/test";
 
+import { stop } from "./slashCommands/MusicPlayer/stop";
+import { play } from "./slashCommands/MusicPlayer/play";
+import { pause } from "./slashCommands/MusicPlayer/pause";
+import { next } from "./slashCommands/MusicPlayer/next";
+import { playsound } from "./slashCommands/MusicPlayer/playsound";
+import { radio } from "./slashCommands/MusicPlayer/radio";
+
 export const slashCommands:Array<SlashCommandType> = [
     shifumi,
     ping,
@@ -20,6 +27,7 @@ export const slashCommands:Array<SlashCommandType> = [
     pc, pd, pk, pxtain,
     hide,
     test,
+    stop, play, pause, next, playsound, radio
 ];
 /// - - -
 ///> Right-Click Commands

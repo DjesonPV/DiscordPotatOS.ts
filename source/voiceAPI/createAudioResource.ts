@@ -41,7 +41,7 @@ async function probeAndCreate(readableStream: internal.Readable) {
 
 async function fetchFileURL(query: string) {
     const radio = RadioGarden.getIdFromRadioURL(query);
-    if (radio !== undefined) return RadioGarden.getRadioFluxURL(radio);
+    if (radio !== null) return RadioGarden.getRadioFluxURL(radio);
 
     let ytdlURL = (await youtubeDl.exec(
         query,

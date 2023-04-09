@@ -20,59 +20,47 @@ export enum TrackStatus {
 export class Track extends EventEmitter {
     data: TrackInfo;
     isDataReady = false;
-    id: DiscordJs.Snowflake;
-    url: string | null;
-    query: string;
+    //id: DiscordJs.Snowflake;
+    //url: string | null;
+    //query: string;
     isLive: boolean | undefined;
-    volume: number | undefined;
-    type: TrackType;
+    //volume: number | undefined;
+    //type: TrackType;
     failed = false;
 
     constructor(
-        id:DiscordJs.Snowflake,
-        query: string,
-        url: string | null,
-        type: TrackType,
-        volume?: number
+        public id: DiscordJs.Snowflake,
+        public query: string,
+        public url: string | null,
+        public type: TrackType,
+        public volume?: number
     ) {
         super();
 
-        this.id = id;
-        this.url = url;
-        this.query = query;
-        this.type = type;
-
-        this.isLive = type != TrackType.File && type != TrackType.Track ? 
-            true :
-            type == TrackType.Track? undefined:false
-        ;
-
-        this.volume = volume;
+        this.isLive = type === TrackType.File ? false : (type === TrackType.Track ? undefined : true);
 
         this.data = placeholderInfo(this);
 
-        fetchTrackInfo(this).then( (info) => {
+        fetchTrackInfo(this).then((info) => {
             this.data = info;
             this.isDataReady = true;
             this.emit(TrackStatus.DataReady);
-
         });
-
     }
 
     async createAudioResource() {
-        if (this.type === TrackType.File) {
-            createAudioFileResource(this.query).then( audio => {
+        if (this.type === TrackType.File && this.url !== null) {
+            createAudioFileResource(this.url).then(audio => {
                 this.emit(TrackStatus.AudioReady, audio);
-            }, (_)=> {
+            }, (_) => {
                 this.data = fetchFailedInfo(this.data);
                 this.failed = true;
                 this.emit(TrackStatus.DataReady);
             });
-        } else if (this.url !== null){
-            createAudioTrackResource(this.url).then( audio => {
+        } else if (this.url !== null) {
+            createAudioTrackResource(this.url).then(audio => {
                 this.emit(TrackStatus.AudioReady, audio);
-            }, (_)=> {
+            }, (_) => {
                 this.data = fetchFailedInfo(this.data);
                 this.failed = true;
                 this.emit(TrackStatus.DataReady);

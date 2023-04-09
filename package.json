@@ -37,6 +37,7 @@
     "dotenv": "^16.0.3",
     "favcolor": "^0.3.0",
     "node-schedule": "^2.1.1",
+    "surfyt-api": "^0.1.2",
     "youtube-dl-exec": "^2.4.0",
     "ytls": "^1.0.6"
   }

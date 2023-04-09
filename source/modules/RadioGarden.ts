@@ -24,7 +24,7 @@ export async function getRadioData(radioUrl:string)
     const radioID = getIdFromRadioURL(radioUrl);
     try
     {
-        if (radioID === undefined) throw new Error('Provied URL is not valid');
+        if (radioID === null) throw new Error('Provied URL is not valid');
 
         const channel = await (await fetch(`https://radio.garden/api/ara/content/channel/${radioID}`)).json();
         return channel.data;
@@ -43,5 +43,5 @@ export function getRadioFluxURL(radioID:string)
 
 export function getIdFromRadioURL(url:string)
 {
-    return url.match(/^https?:\/\/radio\.garden\/listen\/(?:[^\/]+)\/([^\/]+)$/)?.[1];
+    return url.match(/^https?:\/\/radio\.garden\/listen\/(?:[^\/]+)\/([^\/]+)$/)?.[1] ?? null;
 }

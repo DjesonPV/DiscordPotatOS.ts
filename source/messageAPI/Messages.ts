@@ -2,6 +2,9 @@ import * as DiscordJs from 'discord.js';
 import botPersonality from '../modules/botPersonality';
 import { deleteMessage } from '../userInteractiveComponents/buttonCommands/deleteMessage';
 
+
+type TypicalInteraction = DiscordJs.MessageComponentInteraction | DiscordJs.ChatInputCommandInteraction;
+
 export default class Messages {
     private static botUserID: DiscordJs.Snowflake | undefined;
 
@@ -59,7 +62,7 @@ export default class Messages {
     ///> REPLY TO INTERRACTION
 
     static async replyAlert(
-        interaction: DiscordJs.MessageComponentInteraction | DiscordJs.ChatInputCommandInteraction,
+        interaction: TypicalInteraction,
         messageOptions: DiscordJs.InteractionReplyOptions | string
     ) {
 
@@ -76,7 +79,7 @@ export default class Messages {
     }
 
     static async replyEphemeral(
-        interaction: DiscordJs.MessageComponentInteraction | DiscordJs.ChatInputCommandInteraction,
+        interaction: TypicalInteraction,
         messageOptions: DiscordJs.InteractionReplyOptions | string,
         newReply: boolean = false
     ) {
@@ -95,7 +98,7 @@ export default class Messages {
     }
 
     static async reply(
-        interaction: DiscordJs.MessageComponentInteraction | DiscordJs.ChatInputCommandInteraction,
+        interaction: TypicalInteraction,
         messageOptions: DiscordJs.InteractionReplyOptions | string,
         duration: number = 0,
     ) {
@@ -127,7 +130,7 @@ export default class Messages {
         }
     }
 
-    static async defer(interaction: DiscordJs.MessageComponentInteraction | DiscordJs.ChatInputCommandInteraction) {
+    static async defer(interaction: TypicalInteraction) {
         await interaction.deferReply();
     }
 
@@ -138,6 +141,19 @@ export default class Messages {
     static async edit(message: DiscordJs.Message, options:string | DiscordJs.MessagePayload | DiscordJs.MessageEditOptions) {
         return await message.edit(options);
     }
+
+    static replyNotConnectedToAMusicDisplayer(interaction: TypicalInteraction) {
+        Messages.reply(interaction, "Your not connected to a Music Displayer"); /// ####
+    }
+
+    static async startThinking(interaction: TypicalInteraction) {
+        return await interaction.deferReply({fetchReply: true});
+    }
+
+    static stopThinking(message: DiscordJs.Message<boolean>) {
+        Messages.delete(message);
+    }
+
 }
 
 export function getAlertMessagePayload(text: string) {

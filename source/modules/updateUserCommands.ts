@@ -1,14 +1,14 @@
 import * as DiscordJs from 'discord.js';
-import Lang from '../Lang';
+import Lang from '../Lang.js';
 
-import getSecrets from './getSecrets';
+import getSecrets from './getSecrets.js';
 
 type CommandsJSONBody = DiscordJs.RESTPostAPIChatInputApplicationCommandsJSONBody | DiscordJs.RESTPostAPIContextMenuApplicationCommandsJSONBody;
 
 export async function sendUserCommands(list:Array<CommandsJSONBody>)
 {
 
-    const secrets = getSecrets();
+    const secrets = (await getSecrets());
 
     const rest = new DiscordJs.REST({version: '10'}).setToken(secrets.botToken);
 

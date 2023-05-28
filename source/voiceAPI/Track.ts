@@ -1,8 +1,8 @@
 import EventEmitter from "node:events";
 import * as DiscordJs from 'discord.js';
 import * as DiscordJsVoice from '@discordjs/voice';
-import { fetchTrackInfo, TrackInfo, placeholderInfo, fetchFailedInfo } from "./fetchTrackInfo";
-import { createAudioFileResource, createAudioTrackResource } from "./createAudioResource";
+import { fetchTrackInfo, TrackInfo, placeholderInfo, fetchFailedInfo } from "./fetchTrackInfo.js";
+import { createAudioFileResource, createAudioTrackResource } from "./createAudioResource.js";
 
 export enum TrackType {
     File = 0,
@@ -50,7 +50,7 @@ export class Track extends EventEmitter {
 
     async createAudioResource() {
         if (this.type === TrackType.File && this.url !== null) {
-            createAudioFileResource(this.url).then(audio => {
+            createAudioFileResource(`./resources/mp3sounds/${this.url}`).then(audio => {
                 this.emit(TrackStatus.AudioReady, audio);
             }, (_) => {
                 this.data = fetchFailedInfo(this.data);

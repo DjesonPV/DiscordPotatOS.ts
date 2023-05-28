@@ -1,9 +1,9 @@
 import * as DiscordJs from 'discord.js';
-import Lang from '../Lang';
-import Messages from '../messageAPI/Messages';
-import getSecrets from './getSecrets';
+import Lang from '../Lang.js';
+import Messages from '../messageAPI/Messages.js';
+import getSecrets from './getSecrets.js';
 
-export default function connectionToDiscordAPI():DiscordJs.Client
+export default async function connectionToDiscordAPI():Promise<DiscordJs.Client>
 {
     const client:DiscordJs.Client = new DiscordJs.Client(
     {
@@ -21,7 +21,8 @@ export default function connectionToDiscordAPI():DiscordJs.Client
 
     
     client.once("ready", botIsReady);
-    client.login(getSecrets().botToken);
+    client.once("ready", disconnectFromAllVoiceChannels);
+    client.login((await getSecrets()).botToken);
     
     function botIsReady():void
     {
@@ -31,6 +32,13 @@ export default function connectionToDiscordAPI():DiscordJs.Client
         Messages.setBotUserID(client.user.id);
     
         console.log(Lang.get("botIsOnline$1", [client.user.username]));
+    }
+
+    function disconnectFromAllVoiceChannels(){
+        client.guilds.cache.forEach(async (guild) => {
+            const memberMe = await guild.members.fetchMe();
+            if (memberMe) memberMe.voice.disconnect();
+        });
     }
 
     return client;

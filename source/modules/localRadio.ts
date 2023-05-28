@@ -1,5 +1,6 @@
+import importJSON from './importJSON.js';
 
-const radios: LocalRadioDescription = require("../../ressources/localradio.json")
+const radios: LocalRadioDescription = importJSON("./resources/localradio.json");
 
 export default radios;
 

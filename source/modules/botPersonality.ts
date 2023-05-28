@@ -1,11 +1,14 @@
-import * as DotEnv from 'dotenv';
+import importJSON from './importJSON.js';
+
+const DotEnv = await import('dotenv');
+
 
 DotEnv.config();
 
 if (process.env.PERSONALITY_JSON === undefined)
     throw new Error("Environnement variable PERSONALITY_JSON is not defined")
 
-const botPersonality:Personality = require(process.env.PERSONALITY_JSON);
+const botPersonality:Personality = importJSON(`./resources/botPersonality/${process.env.PERSONALITY_JSON}`);
 
 type Personality = {
     nickname: string,

@@ -1,12 +1,9 @@
 import * as DiscordJs from 'discord.js';
-import Lang from '../Lang';
-import * as DotEnv from 'dotenv';
-import { sendUserCommands } from "../modules/updateUserCommands";
+import Lang from '../Lang.js';
 
-DotEnv.config();
-Lang.init(process.env.LANGUAGE);
+import { sendUserCommands } from "../modules/updateUserCommands.js";
+import {slashCommands, rightClickCommands} from '../userCommands/UserCommands.js';
 
-import {slashCommands, rightClickCommands} from '../userCommands/UserCommands';
 
 const commandList = [];
 

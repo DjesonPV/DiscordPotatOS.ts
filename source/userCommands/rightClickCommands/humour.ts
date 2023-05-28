@@ -1,8 +1,7 @@
 import * as DiscordJs from 'discord.js';
-import {RightClickCommandType} from '../UserCommandType';
-import Messages from '../../messageAPI/Messages';
-import Lang from '../../Lang';
-
+import {RightClickCommandType} from '../UserCommandType.js';
+import Messages from '../../messageAPI/Messages.js';
+import Lang from '../../Lang.js';
 
 export const humour:RightClickCommandType =
 {

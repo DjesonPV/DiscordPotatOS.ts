@@ -3,7 +3,7 @@ import * as Schedule from 'node-schedule';
 import * as DiscordJs from 'discord.js';
 
 export async function init(client:DiscordJs.Client, guildId:DiscordJs.Snowflake, userId:DiscordJs.Snowflake) {
-    const nickList = readFileSync("./ressources/tikilist.txt", "utf-8").split('\n');
+    const nickList = readFileSync("./resources/tikilist.txt", "utf-8").split('\n');
 
     const changeName = () => {
         const index = Math.floor(Date.now() / 86400000) % nickList.length;

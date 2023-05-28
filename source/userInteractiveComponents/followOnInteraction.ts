@@ -8,13 +8,18 @@ export function followOnInteraction(
     /** List of `interaction.customId` to listen to */
     identifierList: string[],
     /** example: `interaction.isButton()` */
-    typeIdentification: () => boolean,
+    typeIdentification: 'button' | 'selectMenuInteraction',
     /** function that will be executed once and only when an interaction with the right id and the right type will be collected */
     callback:(followUpInteraction: DiscordJs.ButtonInteraction | DiscordJs.AnySelectMenuInteraction)=> void
 ) {
     const collector = message.createMessageComponentCollector({
         filter: (filteredInteraction) => {
-            return (typeIdentification() &&
+            return typeIdentification==='button'?
+                filteredInteraction.isButton():
+                (typeIdentification==="selectMenuInteraction"?
+                filteredInteraction.isStringSelectMenu():
+                false
+            &&
             (filteredInteraction.user.id === interaction.user.id) &&
             (identifierList.find(id => id === filteredInteraction.customId)) !== undefined);
         },

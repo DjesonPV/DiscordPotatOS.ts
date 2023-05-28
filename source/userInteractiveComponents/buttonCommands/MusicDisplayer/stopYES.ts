@@ -1,6 +1,6 @@
-import { ButtonCommandType } from "../../userInteractiveCommandType";
+import { ButtonCommandType } from "../../userInteractiveCommandType.js";
 import * as DiscordJs from 'discord.js';
-import Lang from "../../../Lang";
+import Lang from "../../../Lang.js";
 
 const identifier = 'PotatOSMusicDisplayerStopYESSTOPIT';
 

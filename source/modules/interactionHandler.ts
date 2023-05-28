@@ -1,8 +1,8 @@
 import * as DiscordJs from 'discord.js';
-import Messages from '../messageAPI/Messages';
+import Messages from '../messageAPI/Messages.js';
 
-import {slashCommands, rightClickCommands} from '../userCommands/UserCommands';
-import { buttonCommands, dropdownListCommands } from '../userInteractiveComponents/userInteractiveCommands';
+import {slashCommands, rightClickCommands} from '../userCommands/UserCommands.js';
+import { buttonCommands, dropdownListCommands } from '../userInteractiveComponents/userInteractiveCommands.js';
 
 export default async function interactionHandler(interaction:DiscordJs.BaseInteraction):Promise<void>
 {

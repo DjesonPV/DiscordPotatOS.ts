@@ -1,8 +1,8 @@
 import * as DiscordJs from 'discord.js';
-import {SlashCommandType} from '../../UserCommandType';
-import Lang from '../../../Lang';
-import Messages from '../../../messageAPI/Messages';
-import { Subscription } from '../../../voiceAPI/Subscription';
+import {SlashCommandType} from '../../UserCommandType.js';
+import Lang from '../../../Lang.js';
+import Messages from '../../../messageAPI/Messages.js';
+import { Subscription } from '../../../voiceAPI/Subscription.js';
 
 export const stop: SlashCommandType = {
     description: new DiscordJs.SlashCommandBuilder()
@@ -12,7 +12,7 @@ export const stop: SlashCommandType = {
     action: async function (interaction) {
         let subscription = Subscription.get(interaction.guildId);
 
-        if (subscription === null || subscription.isMemberConnected(interaction.member)) {
+        if (subscription === null || !subscription.isMemberConnected(interaction.member)) {
             Messages.replyNotConnectedToAMusicDisplayer(interaction);
             return;
         }

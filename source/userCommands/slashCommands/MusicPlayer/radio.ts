@@ -1,11 +1,11 @@
 import * as DiscordJs from 'discord.js';
-import {SlashCommandType} from '../../UserCommandType';
-import Lang from '../../../Lang';
-import { Subscription } from '../../../voiceAPI/Subscription';
-import Messages from '../../../messageAPI/Messages';
-import * as RadioGarden from "../../../modules/RadioGarden";
+import {SlashCommandType} from '../../UserCommandType.js';
+import Lang from '../../../Lang.js';
+import { Subscription } from '../../../voiceAPI/Subscription.js';
+import Messages from '../../../messageAPI/Messages.js';
+import * as RadioGarden from "../../../modules/RadioGarden.js";
 
-import { Track, TrackType } from '../../../voiceAPI/Track';
+import { Track, TrackType } from '../../../voiceAPI/Track.js';
 
 export const radio: SlashCommandType = {
     description: new DiscordJs.SlashCommandBuilder()
@@ -43,7 +43,7 @@ export const radio: SlashCommandType = {
         }
         
         if (url !== undefined) {
-            const track = new Track(interaction.id, query, url, TrackType.Radio, 0.20);
+            const track = new Track(interaction.id, query, url, TrackType.Radio, 0.15);
 
             if (subscription === null) Subscription.create(interaction, track);
             else subscription.tracklist.add(track);

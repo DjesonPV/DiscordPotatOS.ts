@@ -1,3 +1,7 @@
+import importJSON from './modules/importJSON.js';
+
+const DotEnv = await import('dotenv');
+
 type StringDictionary = 
 {
     [key:string]:string | undefined;
@@ -12,15 +16,20 @@ export default class Lang
 {
     private static currentLanguage:StringDictionary;
 
-    private static defaultLanguage:DefaultStringDictionary = require("../ressources/lang/default.json");
+    private static defaultLanguage:DefaultStringDictionary;
 
-    static init(language?:string)
-    {
+    static {
+        DotEnv.config();
+
+        const language = process.env.LANGUAGE;
+
         if (language !== undefined)
-        this.setLanguage(language);
+        Lang.setLanguage(language);
+
+        Lang.defaultLanguage = importJSON("./resources/lang/default.json");
     }
 
-    static setLanguage(language:string)
+    private static setLanguage(language:string)
     {
         const curatedLanguageSelection = language.match(/[a-z]{2}\_[A-Z]{2}/)?.[0];
 
@@ -31,17 +40,19 @@ export default class Lang
         }
 
         try {
-            Lang.currentLanguage = require(`../ressources/lang/${language}.json`);
+            Lang.currentLanguage = importJSON(`./resources/lang/${language}.json`);
         }
         catch (_)
         {
-            console.warn(`Chosen language does not exist.\nPlease verify that the file \`ressources/lang/${curatedLanguageSelection}.json\` exists.\nDefault language \`default.json\` will be applied\n`);
+            console.warn(`Chosen language does not exist.\nPlease verify that the file \`resources/lang/${curatedLanguageSelection}.json\` exists.\nDefault language \`default.json\` will be applied\n`);
         }
     }
 
     static get(key:string,parameters?:Array<string>):string
     {
-        return parseString(Lang.currentLanguage?.[key] ?? Lang.defaultLanguage[key], parameters);
+        const rawString = Lang.currentLanguage?.[key] ?? Lang.defaultLanguage[key];
+        if (rawString === undefined) console.error(`##LANG Undefined key called: "${key}"`);
+        return parseString(rawString, parameters);
     }
 }
 

@@ -1,9 +1,12 @@
 import * as DiscordJs from 'discord.js';
-import {SlashCommandType} from '../../UserCommandType';
-import Lang from '../../../Lang';
-import { Subscription } from '../../../voiceAPI/Subscription';
-import Messages from '../../../messageAPI/Messages';
-import { Track, TrackType } from '../../../voiceAPI/Track';
+import {SlashCommandType} from '../../UserCommandType.js';
+import Lang from '../../../Lang.js';
+import { Subscription } from '../../../voiceAPI/Subscription.js';
+import Messages from '../../../messageAPI/Messages.js';
+import { Track, TrackType } from '../../../voiceAPI/Track.js';
+import importJSON from '../../../modules/importJSON.js';
+
+const soundlist:{[key:string]:SoundData} = importJSON("./resources/mp3sounds/soundlist.json");
 
 export const playsound: SlashCommandType = {
     description: new DiscordJs.SlashCommandBuilder()
@@ -44,8 +47,6 @@ type SoundData = {
     volume?: number,
     thumbnail?: string
 }
-
-const soundlist:{[key:string]:SoundData} = require("../../../../ressources/mp3sounds/soundlist.json");
 
 function getSampleChoices(){
     const choices = [];

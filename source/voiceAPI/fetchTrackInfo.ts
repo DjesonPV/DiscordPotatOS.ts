@@ -1,16 +1,17 @@
 import youtubeDl from "youtube-dl-exec";
-import * as RadioGarden from "../modules/RadioGarden";
+import * as RadioGarden from "../modules/RadioGarden.js";
 import favcolor from 'favcolor';
 
 import * as DiscordJs from 'discord.js';
-import {Track, TrackType} from "./Track";
+import {Track, TrackType} from "./Track.js";
 
 import { promisify } from "node:util";
-import Lang from "../Lang";
-import botPersonality from "../modules/botPersonality";
-import localRadio from "../modules/localRadio";
+import Lang from "../Lang.js";
+import botPersonality from "../modules/botPersonality.js";
+import localRadio from "../modules/localRadio.js";
+import importJSON from "../modules/importJSON.js";
 
-const soundlist: { [key: string]: soundDescription | undefined } = require("../../ressources/mp3sounds/soundlist.json");
+const soundlist: { [key: string]: soundDescription | undefined } = importJSON("./resources/mp3sounds/soundlist.json");
 
 type soundDescription = {
     file: string,
@@ -21,7 +22,7 @@ type soundDescription = {
 }
 
 type InfoFormat = {
-    author: DiscordJs.EmbedAuthorOptions,
+    author: DiscordJs.EmbedAuthorData,
     color: DiscordJs.ColorResolvable,
     description: string,
     title: string,
@@ -32,7 +33,7 @@ type InfoFormat = {
 }
 
 export type TrackInfo = {
-    author: DiscordJs.EmbedAuthorOptions,
+    author: DiscordJs.EmbedAuthorData,
     color: DiscordJs.ColorResolvable,
     description: string,
     title: string,
@@ -168,7 +169,7 @@ function fetchAudioFileInfo(key: string): InfoFormat {
 
 async function fetchAudioTrackInfo(url: string , query: string): Promise<[InfoFormat, boolean]> {   
     return await Promise.race([
-        promisify(setTimeout)(5000, Promise.reject('FetchAudioInfo:\n• Time Limit passed')),
+        promisify(setTimeout)(5000, "").then( () => {return Promise.reject("Timed out")}),
 
         new Promise(function (resolve, reject) {
             youtubeDl.exec(
@@ -219,8 +220,7 @@ async function fetchAudioTrackInfo(url: string , query: string): Promise<[InfoFo
         return [info, isLive];
     },
         function (reason) {
-            if (query === null) return [failedYTDLInfo(url), true];
-            else return [failedYoutubeInfo(url, query), true];
+            return [failedYoutubeInfo(url, query), true];
         }
     )
 }
@@ -252,7 +252,7 @@ function fetchLocalRadioInfo(key: string): InfoFormat {
     return {
         author: {
             name: radio.name,
-            url: radio.name,
+            url: radio.web,
             iconURL: botPersonality.radioIcon
         },
         color: botPersonality.radioColor as DiscordJs.ColorResolvable,
@@ -285,7 +285,8 @@ function failedRadioGardenInfo(url: string, query: string): InfoFormat {
     };
 }
 
-function failedYoutubeInfo(url: string, query: string): InfoFormat {
+function failedYoutubeInfo(url: string, query: string|null): InfoFormat {
+    if (query == null) return failedYTDLInfo(url);
     return {
         author: {
             name: `YouTube`,

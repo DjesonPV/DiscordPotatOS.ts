@@ -1,7 +1,17 @@
 import * as DiscordJsVoice from '@discordjs/voice';
 import EventEmitter from 'node:events';
 
-export default class AudioPlayer extends EventEmitter {
+export enum AudioPlayerEvent {
+    Error = "error",
+    Unmute = "unmute",
+    Mute = "mute",
+    PleasePlay = "pleasePlay",
+    Next = "next",
+    Retry = "retry",
+    Failed = "failed"
+}
+
+export class AudioPlayer extends EventEmitter {
     private audioPlayer: DiscordJsVoice.AudioPlayer;
 
     private isPaused = false; // for "Paused" Livestream
@@ -14,10 +24,10 @@ export default class AudioPlayer extends EventEmitter {
         super();
         this.audioPlayer = DiscordJsVoice.createAudioPlayer();
 
-        this.audioPlayer.on('stateChange', this.onStateChange);
+        this.audioPlayer.on('stateChange', (oldState, newState) => { this.onStateChange(oldState, newState) });
 
         this.audioPlayer.on('error', (error) => {
-            this.emit('error', error);
+            this.emit(AudioPlayerEvent.Error, error);
         });
 
     }
@@ -36,44 +46,45 @@ export default class AudioPlayer extends EventEmitter {
 
         this.isPaused = paused;
 
-        if (paused) this.emit('mute');
+        if (paused) this.emit(AudioPlayerEvent.Mute);
     }
 
     unpause(isLive: boolean = false) {
         if (isLive) {
-            this.emit('pleasePlay');
+            this.emit(AudioPlayerEvent.PleasePlay);
             return;
         }
 
         const unpaused = this.audioPlayer.unpause();
         this.isPaused = !unpaused;
 
-        if (unpaused) this.emit('unmute');
+        if (unpaused) this.emit(AudioPlayerEvent.Unmute);
     }
 
-    get subscription () {
+    get subscription() {
         return this.audioPlayer;
     }
 
-    get paused(){
+    get paused() {
         return this.isPaused;
     }
 
-    private async onStateChange(oldState: DiscordJsVoice.AudioPlayerState, newState: DiscordJsVoice.AudioPlayerState) {
+    private onStateChange(oldState: DiscordJsVoice.AudioPlayerState, newState: DiscordJsVoice.AudioPlayerState) {
         switch (getStatusFromStates(oldState, newState, this.isPaused)) {
             case Status.Idle:
-                if (this.playedEnough === true)
-                    this.emit('skip');
-                else if (this.playedEnoughCount > 0) {
+                if (this.playedEnough === true) {
+                    this.emit(AudioPlayerEvent.Next);
+                } else if (this.playedEnoughCount > 0) {
                     clearTimeout(this.successfulStreamVerificationNumber);
+                    this.playedEnough = false;
                     this.playedEnoughCount--;
-                    this.emit('retry');
-                } else this.emit('failed');
+                    this.emit(AudioPlayerEvent.Retry);
+                } else this.emit(AudioPlayerEvent.Failed);
                 break;
             case Status.Playing:
-
-                if (this.playedEnough === false)
+                if (this.playedEnough === false) {
                     this.playedEnoughCount = 30;
+                }
 
                 // Will have playedEnough after 100 ms withtout idling
                 this.successfulStreamVerificationNumber = setTimeout(() => {
@@ -86,7 +97,7 @@ export default class AudioPlayer extends EventEmitter {
         }
     }
 
-    destroy(){
+    destroy() {
         this.audioPlayer.stop(false);
     }
 

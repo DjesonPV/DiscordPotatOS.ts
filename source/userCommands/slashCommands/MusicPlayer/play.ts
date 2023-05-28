@@ -1,10 +1,10 @@
 import * as DiscordJs from 'discord.js';
-import {SlashCommandType} from '../../UserCommandType';
-import Lang from '../../../Lang';
-import { Subscription } from '../../../voiceAPI/Subscription';
-import Messages from '../../../messageAPI/Messages';
-import * as SurfYT from 'surfyt-api';
-import { Track, TrackType } from '../../../voiceAPI/Track';
+import {SlashCommandType} from '../../UserCommandType.js';
+import Lang from '../../../Lang.js';
+import { Subscription } from '../../../voiceAPI/Subscription.js';
+import Messages from '../../../messageAPI/Messages.js';
+const SurfYT = await import('surfyt-api');
+import { Track, TrackType } from '../../../voiceAPI/Track.js';
 
 export const play: SlashCommandType = {
     description: new DiscordJs.SlashCommandBuilder()
@@ -66,7 +66,6 @@ export const play: SlashCommandType = {
 
         if (url !== undefined) {
             const track = new Track(interaction.id, query, url, TrackType.Track, 0.15);
-
             if (subscription === null) Subscription.create(interaction, track);
             else subscription.tracklist.add(track);
         }

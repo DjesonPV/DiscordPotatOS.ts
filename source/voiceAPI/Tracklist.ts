@@ -1,9 +1,11 @@
 import * as DiscordJs from 'discord.js';
-import { Track, TrackType } from './Track';
+import { Track, TrackType } from './Track.js';
 import EventEmitter from "node:events";
 
-enum TracklistState {
-    Changed = "changed"
+export enum TracklistState {
+    Changed = "changed",
+    Empty = "empty",
+    Next = "next"
 }
 
 export class Tracklist extends EventEmitter{
@@ -25,6 +27,7 @@ export class Tracklist extends EventEmitter{
 
     add(track:Track) {
         this.list.push(track);
+        track.once('dataReady', ()=> {this.emit(TracklistState.Changed);});
         this.emit(TracklistState.Changed);
     };
 
@@ -53,7 +56,8 @@ export class Tracklist extends EventEmitter{
 
     next() {
         this.list.shift();
-        this.emit(TracklistState.Changed);
+        if (this.isEmpty) this.emit(TracklistState.Empty)
+        else this.emit(TracklistState.Next);
     }
 
     get isEmpty () {

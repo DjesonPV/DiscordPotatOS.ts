@@ -1,7 +1,7 @@
 import * as DiscordJs from 'discord.js';
-import {SlashCommandType} from '../UserCommandType';
-import Messages from '../../messageAPI/Messages';
-import Lang from '../../Lang';
+import {SlashCommandType} from '../UserCommandType.js';
+import Messages from '../../messageAPI/Messages.js';
+import Lang from '../../Lang.js';
 
 const emojisMove = [":fist:", ":raised_hand:", ":v:"];
 const emojisResult = [":arrow_right:",":regional_indicator_i:",":arrow_left:"];

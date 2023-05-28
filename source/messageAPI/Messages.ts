@@ -1,6 +1,6 @@
 import * as DiscordJs from 'discord.js';
-import botPersonality from '../modules/botPersonality';
-import { deleteMessage } from '../userInteractiveComponents/buttonCommands/deleteMessage';
+import botPersonality from '../modules/botPersonality.js';
+import { deleteMessage } from '../userInteractiveComponents/buttonCommands/deleteMessage.js';
 
 
 type TypicalInteraction = DiscordJs.MessageComponentInteraction | DiscordJs.ChatInputCommandInteraction;
@@ -26,7 +26,11 @@ export default class Messages {
         if (message.author.id !== this.botUserID || !message.deletable)
             return;
 
-        return message.delete();
+        try {
+            await message.delete();
+        } catch (error:any) {
+            console.warn(error); 
+        }
     }
 
     static async noReplyForThisInterraction(
@@ -47,7 +51,6 @@ export default class Messages {
         duration: number = 0,
         isAlert: boolean = false
     ) {
-
         return await channel.send(getMessagePayload(messageOptions, duration, isAlert))
             .then((message) => {
                 if (duration > 0) {
@@ -143,7 +146,7 @@ export default class Messages {
     }
 
     static replyNotConnectedToAMusicDisplayer(interaction: TypicalInteraction) {
-        Messages.reply(interaction, "Your not connected to a Music Displayer"); /// ####
+        Messages.replyAlert(interaction, "Your not connected to a Music Displayer"); /// ####
     }
 
     static async startThinking(interaction: TypicalInteraction) {

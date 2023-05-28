@@ -1,5 +1,5 @@
 import * as DiscordJsVoice from '@discordjs/voice';
-import * as RadioGarden from "../modules/RadioGarden";
+import * as RadioGarden from "../modules/RadioGarden.js";
 
 import * as fs from 'fs';
 import internal from 'stream';

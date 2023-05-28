@@ -1,10 +1,10 @@
 import * as DiscordJs from 'discord.js';
-import Lang from '../../../Lang';
-import Messages from '../../../messageAPI/Messages';
-import botPersonality from '../../../modules/botPersonality';
-import { CallableButtonCommandType } from '../../userInteractiveCommandType';
+import Lang from '../../../Lang.js';
+import Messages from '../../../messageAPI/Messages.js';
+import botPersonality from '../../../modules/botPersonality.js';
+import { CallableButtonCommandType } from '../../userInteractiveCommandType.js';
 
-import { Subscription } from '../../../voiceAPI/Subscription';
+import { Subscription } from '../../../voiceAPI/Subscription.js';
 
 const identifier = 'PotatOSMusicDisplayer'; 
 
@@ -28,7 +28,7 @@ export const display: CallableButtonCommandType =
         if (subscription === null) {
             Messages.delete(interaction.message);
         } else {
-            //subscription.; //#### update displayer
+            subscription.musicDisplayerFullUpdate();
             interaction.deferUpdate();
         }
     },

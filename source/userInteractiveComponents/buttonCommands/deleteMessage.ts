@@ -1,8 +1,8 @@
 import * as DiscordJs from 'discord.js';
-import Messages from "../../messageAPI/Messages"
-import Lang from '../../Lang';
+import Messages from "../../messageAPI/Messages.js"
+import Lang from '../../Lang.js';
 
-import { CallableButtonCommandType } from '../userInteractiveCommandType';
+import { CallableButtonCommandType } from '../userInteractiveCommandType.js';
 
 const identifier = 'PotatOSDeleteMessage'; 
 

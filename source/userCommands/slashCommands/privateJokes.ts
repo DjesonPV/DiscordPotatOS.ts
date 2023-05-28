@@ -1,7 +1,7 @@
 import * as DiscordJs from 'discord.js';
-import {SlashCommandType} from '../UserCommandType';
-import Messages from '../../messageAPI/Messages';
-import Lang from '../../Lang';
+import {SlashCommandType} from '../UserCommandType.js';
+import Messages from '../../messageAPI/Messages.js';
+import Lang from '../../Lang.js';
 
 
 /* /!\ DISCLAIMER /!\ __________________________________________________________

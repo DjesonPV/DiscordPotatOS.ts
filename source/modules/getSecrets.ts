@@ -1,13 +1,17 @@
-import * as DotEnv from 'dotenv';
+import { readFileSync } from 'fs';
+import path from 'path';
+import importJSON from './importJSON.js';
 
-export default function getSecrets():SecretJSON
+const DotEnv = await import('dotenv');
+
+
+export default async function getSecrets():Promise<SecretJSON>
 {
     DotEnv.config();
 
     if (process.env.SECRET_JSON === undefined)
     throw new Error("Environnement variable SECRET_JSON is not defined")
-
-    return require(process.env.SECRET_JSON);
+    return  importJSON(`./secret/${process.env.SECRET_JSON}`);
 }
 
 type SecretJSON = {

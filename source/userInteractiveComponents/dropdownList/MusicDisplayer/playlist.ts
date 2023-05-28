@@ -1,19 +1,19 @@
 import * as DiscordJs from 'discord.js';
-import Lang from '../../../Lang';
-import { CallableDropdownListCommandType } from '../../userInteractiveCommandType';
+import Lang from '../../../Lang.js';
+import { CallableDropdownListCommandType } from '../../userInteractiveCommandType.js';
 
-import { Tracklist } from '../../../voiceAPI/Tracklist';
+import { Tracklist } from '../../../voiceAPI/Tracklist.js';
 
-import { Subscription } from '../../../voiceAPI/Subscription';
+import { Subscription } from '../../../voiceAPI/Subscription.js';
 
-import { playlistCancel } from '../../buttonCommands/MusicDisplayer/playlistCANCEL';
-import { playlistNext } from '../../buttonCommands/MusicDisplayer/playlistNEXT';
-import { playlistRemove } from '../../buttonCommands/MusicDisplayer/playlistREMOVE';
-import Messages from '../../../messageAPI/Messages';
-import { getAlertMessagePayload } from '../../../messageAPI/Messages';
-import { followOnInteraction } from '../../followOnInteraction';
+import { playlistCancel } from '../../buttonCommands/MusicDisplayer/playlistCANCEL.js';
+import { playlistNext } from '../../buttonCommands/MusicDisplayer/playlistNEXT.js';
+import { playlistRemove } from '../../buttonCommands/MusicDisplayer/playlistREMOVE.js';
+import Messages from '../../../messageAPI/Messages.js';
+import { getAlertMessagePayload } from '../../../messageAPI/Messages.js';
+import { followOnInteraction } from '../../followOnInteraction.js';
 
-import botPersonality from '../../../modules/botPersonality';
+import botPersonality from '../../../modules/botPersonality.js';
 
 
 const identifier = 'PotatOSMusicDisplayerPlaylist'; 
@@ -58,7 +58,7 @@ export const playlist: CallableDropdownListCommandType =
             ]
         });
 
-        followOnInteraction(interaction, message, [playlistCancel.identifier, playlistNext.identifier, playlistRemove.identifier], interaction.isButton, (collectedInteraction) =>{
+        followOnInteraction(interaction, message, [playlistCancel.identifier, playlistNext.identifier, playlistRemove.identifier], 'button', (collectedInteraction) =>{
             collectedInteraction.deferUpdate();
             if (subscription.isMemberConnected(collectedInteraction.member)) { // the user could disconnect between presses
                 switch (collectedInteraction.customId) {
@@ -73,7 +73,7 @@ export const playlist: CallableDropdownListCommandType =
                     ;
                 }
                 
-                Messages.update(interaction, {
+                Messages.replyEphemeral(interaction, {
                     content: Lang.get("MP_Playlist_requestRoger"),
                     components: [],
                     embeds: []
@@ -84,7 +84,7 @@ export const playlist: CallableDropdownListCommandType =
                 messageOptions.content = "";
                 messageOptions.components= [];
 
-                Messages.update(interaction, messageOptions);
+                Messages.replyEphemeral(interaction, messageOptions);
             }
         })
 

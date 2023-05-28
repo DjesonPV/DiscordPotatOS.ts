@@ -1,15 +1,15 @@
 import * as DiscordJs from 'discord.js';
-import Lang from '../../../Lang';
-import Messages from '../../../messageAPI/Messages';
-import { getAlertMessagePayload } from '../../../messageAPI/Messages';
-import botPersonality from '../../../modules/botPersonality';
-import { CallableButtonCommandType } from '../../userInteractiveCommandType';
+import Lang from '../../../Lang.js';
+import Messages from '../../../messageAPI/Messages.js';
+import { getAlertMessagePayload } from '../../../messageAPI/Messages.js';
+import botPersonality from '../../../modules/botPersonality.js';
+import { CallableButtonCommandType } from '../../userInteractiveCommandType.js';
 
-import { Subscription } from '../../../voiceAPI/Subscription';
-import { followOnInteraction } from '../../followOnInteraction';
+import { Subscription } from '../../../voiceAPI/Subscription.js';
+import { followOnInteraction } from '../../followOnInteraction.js';
 
-import { stopYes } from './stopYES';
-import { stopNo } from './stopNO';
+import { stopYes } from './stopYES.js';
+import { stopNo } from './stopNO.js';
 
 const identifier = 'PotatOSMusicDisplayerStop'; 
 
@@ -39,12 +39,12 @@ export const stop: CallableButtonCommandType =
             components: [new DiscordJs.ActionRowBuilder<DiscordJs.ButtonBuilder>().addComponents(stopYes.button, stopNo.button)]
         });
 
-        followOnInteraction(interaction, message, [stopYes.identifier, stopNo.identifier], interaction.isButton, (collectedInteraction) => {
+        followOnInteraction(interaction, message, [stopYes.identifier, stopNo.identifier], 'button', (collectedInteraction) => {
             collectedInteraction.deferUpdate();
             if(subscription.isMemberConnected(collectedInteraction.member)) { //the user might disconnect between the two button presses
                 if (collectedInteraction.customId === stopYes.identifier) subscription.unsubscribe();
                 
-                Messages.update(interaction,{
+                Messages.replyEphemeral(interaction,{
                     content: Lang.get("MP_Button_stopRoger"),
                     components: []
                 },);

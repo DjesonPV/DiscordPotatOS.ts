@@ -1,18 +1,14 @@
 
 import * as DiscordJs from 'discord.js';
-import * as DotEnv from 'dotenv';
-import Lang from './Lang';
-import gracefulShutdownHandler from './modules/gracefulShutdownHandler';
+import Lang from './Lang.js';
+import gracefulShutdownHandler from './modules/gracefulShutdownHandler.js';
 
-import connectionToDiscordAPI from './modules/connectionToDiscordAPI';
-import interactionHandler from './modules/interactionHandler';
-
-DotEnv.config();
+import connectionToDiscordAPI from './modules/connectionToDiscordAPI.js';
+import interactionHandler from './modules/interactionHandler.js';
 
 // Bot Initialisation
-Lang.init(process.env.LANGUAGE);
 console.log(Lang.get("botStarting"));
-const client:DiscordJs.Client = connectionToDiscordAPI();
+const client:DiscordJs.Client = await connectionToDiscordAPI();
 
 // Main Listener which will handle User Interaction
 client.on('interactionCreate', interactionHandler);

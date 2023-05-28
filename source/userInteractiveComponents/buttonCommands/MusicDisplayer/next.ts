@@ -1,10 +1,10 @@
 import * as DiscordJs from 'discord.js';
-import Lang from '../../../Lang';
-import Messages from '../../../messageAPI/Messages';
-import botPersonality from '../../../modules/botPersonality';
-import { CallableButtonCommandType } from '../../userInteractiveCommandType';
+import Lang from '../../../Lang.js';
+import Messages from '../../../messageAPI/Messages.js';
+import botPersonality from '../../../modules/botPersonality.js';
+import { CallableButtonCommandType } from '../../userInteractiveCommandType.js';
 
-import { Subscription } from '../../../voiceAPI/Subscription';
+import { Subscription } from '../../../voiceAPI/Subscription.js';
 
 const identifier = 'PotatOSMusicDisplayerNext'; 
 
@@ -13,9 +13,9 @@ export const next: CallableButtonCommandType =
     button: (disable:boolean) => {
         return new DiscordJs.ButtonBuilder()
         .setCustomId(identifier)
-        .setLabel(Lang.get("MP_Button_displayLabel$1", [botPersonality.nickname]))
-        .setStyle(DiscordJs.ButtonStyle.Secondary)
-        .setEmoji(Lang.get("MP_Button_displayEmoji"))
+        .setLabel(Lang.get("MP_Button_nextLabel"))
+        .setStyle(DiscordJs.ButtonStyle.Primary)
+        .setEmoji(Lang.get("MP_Button_nextEmoji"))
         .setDisabled(disable)
         ;
     },

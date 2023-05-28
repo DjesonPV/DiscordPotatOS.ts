@@ -1,6 +1,7 @@
 {
   "name": "discordpotatos.ts",
   "version": "1.0.0",
+  "type": "module",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -32,11 +33,14 @@
     "typescript": "^4.9.5"
   },
   "dependencies": {
+    "@discordjs/builders": "^1.6.3",
     "@discordjs/voice": "^0.15.0",
     "discord.js": "^14.8.0",
     "dotenv": "^16.0.3",
     "favcolor": "^0.3.0",
+    "libsodium-wrappers": "^0.7.11",
     "node-schedule": "^2.1.1",
+    "opusscript": "^0.0.8",
     "surfyt-api": "^0.1.2",
     "youtube-dl-exec": "^2.4.0",
     "ytls": "^1.0.6"

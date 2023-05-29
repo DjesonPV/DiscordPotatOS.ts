@@ -21,7 +21,7 @@ export default class Lang
     static {
         DotEnv.config();
 
-        const language = process.env.LANGUAGE;
+        const language = process.env.BOTLANGUAGE;
 
         if (language !== undefined)
         Lang.setLanguage(language);

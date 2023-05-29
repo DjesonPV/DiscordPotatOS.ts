@@ -5,3 +5,4 @@
 #Secret Data
 /secret/*
 !/secret/example.json
+.*

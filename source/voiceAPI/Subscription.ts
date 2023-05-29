@@ -88,9 +88,13 @@ export class Subscription {
                 this.audioPlayer.play(audio);
             });
 
-            this.tracklist.now.once(TrackStatus.DataReady, () => {
+            if (this.tracklist.now.isDataReady) {
                 this.musicDisplayerFullUpdate();
-            });
+            } else {
+                this.tracklist.now.once(TrackStatus.DataReady, () => {
+                    this.musicDisplayerFullUpdate();
+                });
+            }
         });
 
         this.audioPlayer.on(AudioPlayerEvent.Next, () => {

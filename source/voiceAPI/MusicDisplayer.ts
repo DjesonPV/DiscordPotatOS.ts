@@ -20,7 +20,7 @@ export class MusicDisplayer {
     private tracklistRow: DiscordJs.ActionRowBuilder<DiscordJs.StringSelectMenuBuilder> | null = null;
     private buttonRow: DiscordJs.ActionRowBuilder<DiscordJs.ButtonBuilder> = this.updateButtons(false, true, false, true);
     private embed: DiscordJs.EmbedBuilder;
-    private message: DiscordJs.Message | null = null;
+    message: DiscordJs.Message | null = null;
     //private textChannel: DiscordJs.TextBasedChannel;
     //private channelName: string;
     private messageLock: boolean = false;

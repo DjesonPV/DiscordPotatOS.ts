@@ -6,21 +6,22 @@ import Messages from '../../../messageAPI/Messages.js';
 import * as RadioGarden from "../../../modules/RadioGarden.js";
 
 import { Track, TrackType } from '../../../voiceAPI/Track.js';
+import botPersonality from '../../../modules/botPersonality.js';
 
 export const radio: SlashCommandType = {
     description: new DiscordJs.SlashCommandBuilder()
-    .setName('radio')
-    .setDescription("Music Player - Radio") // #####
+    .setName(Lang.get('SC_radio_commandName'))
+    .setDescription(Lang.get('SC_radio_commandDescription$1', [botPersonality.nickname]))
     .addStringOption(option => option
-        .setName('query')
-        .setDescription("url or sarch terms")
+        .setName(Lang.get('SC_radio_optionName'))
+        .setDescription(Lang.get('SC_radio_optionDescription'))
         .setRequired(true)  
     )
     ,
     action: async function (interaction) {
         const thinkingMessage = await Messages.startThinking(interaction);
 
-        const query = interaction.options.getString('query');
+        const query = interaction.options.getString(Lang.get('SC_radio_optionName'));
 
         if (query === null) throw new Error ("PlaySound without key")
 
@@ -31,11 +32,11 @@ export const radio: SlashCommandType = {
         if (isItAnURL(query)) {
             if (RadioGarden.getIdFromRadioURL(query) !== null)
             url = query;
-            else Messages.replyAlert(interaction,"Wrong URL"); //####
+            else Messages.replyAlert(interaction, Lang.get('MP_RadioNonValidLink$1', [query])); //####
         } else {
             const searchURL = await RadioGarden.searchForRadioUrl(query)
             .catch(_ => {
-                Messages.replyAlert(interaction, "Didn't find nothing"); //#####
+                Messages.replyAlert(interaction, Lang.get('MP_RadioSearchError$1', [query])); //#####
                 return null;
             });
             

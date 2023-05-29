@@ -5,20 +5,21 @@ import { Subscription } from '../../../voiceAPI/Subscription.js';
 import Messages from '../../../messageAPI/Messages.js';
 const SurfYT = await import('surfyt-api');
 import { Track, TrackType } from '../../../voiceAPI/Track.js';
+import botPersonality from '../../../modules/botPersonality.js';
 
-export const play: SlashCommandType = {
+export const playtrack: SlashCommandType = {
     description: new DiscordJs.SlashCommandBuilder()
-    .setName('play')
-    .setDescription("Music Player - Play") // #####
+    .setName(Lang.get('SC_playtrack_commandName'))
+    .setDescription(Lang.get('SC_playtrack_commandDescription$1', [botPersonality.nickname]))
     .addStringOption(option => option
-        .setName('query')
-        .setDescription("url or sarch terms")    
+        .setName(Lang.get('SC_playtrack_optionName'))
+        .setDescription(Lang.get('SC_playtrack_optionDescription'))
     )
     ,
     action: async function (interaction) {
         const thinkingMessage = await Messages.startThinking(interaction);
 
-        const query = interaction.options.getString('query');
+        const query = interaction.options.getString(Lang.get('SC_playtrack_optionName'));
 
         let subscription = Subscription.get(interaction.guildId);
 
@@ -54,13 +55,13 @@ export const play: SlashCommandType = {
                 }
             )
             .catch(_ => {
-                Messages.replyAlert(interaction, 'YT Searching Error ####')
+                Messages.replyAlert(interaction, Lang.get('MP_PlaytrackSearchError$1', [query]));
             });
 
             if (searchResult?.[0]?.url != undefined){
                 url = searchResult[0].url;
             } else {
-                Messages.replyAlert(interaction, "Search yielded no result ###")
+                Messages.replyAlert(interaction, Lang.get("MP_SearchError"));
             }
         }
 

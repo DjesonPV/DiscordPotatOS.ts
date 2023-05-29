@@ -3,11 +3,12 @@ import {SlashCommandType} from '../../UserCommandType.js';
 import Lang from '../../../Lang.js';
 import Messages from '../../../messageAPI/Messages.js';
 import { Subscription } from '../../../voiceAPI/Subscription.js';
+import botPersonality from '../../../modules/botPersonality.js';
 
 export const pause: SlashCommandType = {
     description: new DiscordJs.SlashCommandBuilder()
-    .setName('pause')
-    .setDescription('Music Player - Pause') //###
+    .setName(Lang.get('SC_pause_commandName'))
+    .setDescription(Lang.get('SC_pause_commandDescription$1', [botPersonality.nickname])) //###
     ,
     action: async function (interaction) {
         let subscription = Subscription.get(interaction.guildId);

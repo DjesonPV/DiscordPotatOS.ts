@@ -5,16 +5,17 @@ import { Subscription } from '../../../voiceAPI/Subscription.js';
 import Messages from '../../../messageAPI/Messages.js';
 import { Track, TrackType } from '../../../voiceAPI/Track.js';
 import importJSON from '../../../modules/importJSON.js';
+import botPersonality from '../../../modules/botPersonality.js';
 
 const soundlist:{[key:string]:SoundData} = importJSON("./resources/mp3sounds/soundlist.json");
 
 export const playsound: SlashCommandType = {
     description: new DiscordJs.SlashCommandBuilder()
-    .setName('playsound')
-    .setDescription("Music Player - PlaySound") // #####
+    .setName(Lang.get('SC_playsound_commandName'))
+    .setDescription(Lang.get('SC_playsound_commandDescription$1', [botPersonality.nickname]))
     .addStringOption(option => option
-        .setName('sound')
-        .setDescription("sound to play")
+        .setName(Lang.get('SC_playsound_optionName'))
+        .setDescription(Lang.get('SC_playsound_optionDescription'))
         .addChoices(...getSampleChoices())
         .setRequired(true)    
     )
@@ -22,7 +23,7 @@ export const playsound: SlashCommandType = {
     action: async function (interaction) {
         const thinkingMessage = await Messages.startThinking(interaction);
 
-        const query = interaction.options.getString('sound');
+        const query = interaction.options.getString(Lang.get('SC_playsound_optionName'));
 
         if (query === null) throw new Error ("PlaySound without key")
 

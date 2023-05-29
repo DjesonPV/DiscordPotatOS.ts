@@ -78,12 +78,28 @@
     "SC_shifumi_draw2": "What?! Are you reading my circuit boards?",
     "SC_shifumi_draw3": "I'm four parallel universes ahead of you!",
 
-    "SC_playsound_commandName": "playsound",
     "SC_playtrack_commandName": "play",
+    "SC_playtrack_commandDescription$1": "${botName} Audio Player : PLAY | Unpause the audio player or add a media to play",
+    "SC_playtrack_optionName": "query",
+    "SC_playtrack_optionDescription": "URL from the media to play or keywords to search on YouTube",
+    "SC_playsound_commandName": "playsound",
+    "SC_playsound_commandDescription$1": "${botName} Audio Player : PLAYSOUND | Play a handpicked sound",
+    "SC_playsound_optionName": "sound",
+    "SC_playsound_optionDescription": "Pick your poison",
+    "SC_pause_commandName": "pause",
+    "SC_pause_commandDescription$1" : "${botName Audio Player : PAUSE | Pause the audio player",
     "SC_stop_commandName": "stop",
+    "SC_stop_commandDescription$1": "${botName} Audio Player : STOP | End the audio player",
     "SC_next_commandName": "next",
+    "SC_next_commandDescription$1": "${botName} Audio Player : NEXT | End the current media and play the next media (if there is one)",
     "SC_radio_commandName": "radio",
+    "SC_radio_commandDescription$1": "${botName} Audio Player : RADIO | Add a radio from RadioGarden to the audio player",
+    "SC_radio_optionName": "query",
+    "SC_radio_optionDescription": "Search a radio station by its name or use the direct radio RadioGarden link",
     "SC_localRadio_commandName": "localradio",
+    "SC_localradio_commandDescription$1": "${botName} Audio Player : LOCALRADIO | Add a handpicked radio not available on RadioGarden",
+    "SC_localradio_optionName": "station",
+    "SC_localradio_optionDescription": "Pick a radio organically grown near from you",
 
     "BT_delete_label$1" : "This message will be deleted in ${duration} seconds",
 
@@ -143,6 +159,11 @@
     "MP_Playlist_nextEmoji": "🔝",
     "MP_Playlist_removeLabel": "Remove from the playlist",
     "MP_Playlist_removeEmoji": "🗑",
-    "MP_Playlist_requestRoger": "Roger that.\n You can now dismiss this message"
+    "MP_Playlist_requestRoger": "Roger that.\nYou can now dismiss this message",
+
+    "MP_PlaytrackSearchError$1": "No media found on YouTube for {${query}}",
+    "MP_SearchError": "Search has failed",
+    "MP_RadioNonValidLink$1": "The provied URL isn't a direct radio station link from RadioGarden: {${query}}",
+    "MP_RadioSearchError$1": "No media found on RadioGarden or search failed for {${query}}"
 
 }

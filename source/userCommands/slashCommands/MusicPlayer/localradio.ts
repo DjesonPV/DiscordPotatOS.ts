@@ -5,16 +5,17 @@ import { Subscription } from '../../../voiceAPI/Subscription.js';
 import Messages from '../../../messageAPI/Messages.js';
 import { Track, TrackType } from '../../../voiceAPI/Track.js';
 import importJSON from '../../../modules/importJSON.js';
+import botPersonality from '../../../modules/botPersonality.js';
 
 const radiolist:{[key:string]:LocalRadioData} = importJSON("./resources/localradio.json");
 
 export const localradio: SlashCommandType = {
     description: new DiscordJs.SlashCommandBuilder()
-    .setName('localradio')
-    .setDescription("Music Player - LocalRadio") // #####
+    .setName(Lang.get('SC_localRadio_commandName'))
+    .setDescription(Lang.get('SC_localradio_commandDescription$1', [botPersonality.nickname])) // #####
     .addStringOption(option => option
-        .setName('radio')
-        .setDescription("live radio to play")
+        .setName(Lang.get('SC_localradio_optionName'))
+        .setDescription(Lang.get('SC_localradio_optionDescription'))
         .addChoices(...getLocalRadioChoices())
         .setRequired(true)    
     )
@@ -22,7 +23,7 @@ export const localradio: SlashCommandType = {
     action: async function (interaction) {
         const thinkingMessage = await Messages.startThinking(interaction);
 
-        const query = interaction.options.getString('radio');
+        const query = interaction.options.getString(Lang.get('SC_localradio_optionName'));
         if (query === null) throw new Error ("LocalRadio without key")
 
         let subscription = Subscription.get(interaction.guildId);

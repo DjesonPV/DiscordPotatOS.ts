@@ -1,0 +1,14 @@
+{
+    "nickname": "GLaDOS",
+    "icon": "https://media.discordapp.net/attachments/329613279204999170/1035569018620362802/GLaDOS_de_base.png",
+    "color": "#28ACE3",
+
+    "errorIcon": "https://media.discordapp.net/attachments/329613279204999170/970413892792623204/Error_icon.png",
+    "errorColor": "#FF006E",
+
+    "musicPlayerDefaultThumbnail": "https://media.discordapp.net/attachments/329613279204999170/1035569019027206165/GLaDOS_de_base_black_and_white.png",
+    
+    "radioIcon": "https://radio.garden/icons/favicon.png",
+    "radioThumbnail": "https://media.discordapp.net/attachments/970417796729143316/1006689396805861427/unknown.png",
+    "radioColor": "#0FF388"
+}

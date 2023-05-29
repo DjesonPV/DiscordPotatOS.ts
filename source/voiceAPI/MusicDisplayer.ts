@@ -16,7 +16,7 @@ import Messages from '../messageAPI/Messages.js';
 export class MusicDisplayer {
 
     //private guildName:string;
-
+    private deleted = false;
     private tracklistRow: DiscordJs.ActionRowBuilder<DiscordJs.StringSelectMenuBuilder> | null = null;
     private buttonRow: DiscordJs.ActionRowBuilder<DiscordJs.ButtonBuilder> = this.updateButtons(false, true, false, true);
     private embed: DiscordJs.EmbedBuilder;
@@ -56,7 +56,7 @@ export class MusicDisplayer {
 
     private pushUpdate() {
         if (this.timeout !== null) clearTimeout(this.timeout);
-        this.timeout = setTimeout(() => { this.updateMessage(); }, 100);
+        this.timeout = setTimeout(() => { if (!this.deleted) this.updateMessage(); }, 100);
     }
 
     updateButtons(isLive: boolean | undefined, isPaused: boolean, hasQueue: boolean, disableAll: boolean = false) {
@@ -94,6 +94,7 @@ export class MusicDisplayer {
     }
 
     delete() {
+        this.deleted = true;
         if (this.message !== null) {
             Messages.delete(this.message);
             this.message = null;

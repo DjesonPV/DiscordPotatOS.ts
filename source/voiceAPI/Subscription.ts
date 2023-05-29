@@ -152,7 +152,7 @@ export class Subscription {
     }
 
     skip() {
-        this.audioPlayer.pause(true);
+        if (!this.audioPlayer.paused) this.audioPlayer.pause(true);
         this.next();
     }
 

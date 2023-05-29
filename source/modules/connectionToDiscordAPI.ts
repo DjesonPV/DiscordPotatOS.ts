@@ -2,6 +2,8 @@ import * as DiscordJs from 'discord.js';
 import Lang from '../Lang.js';
 import Messages from '../messageAPI/Messages.js';
 import getSecrets from './getSecrets.js';
+import importJSON from './importJSON.js';
+import { init } from './tikilist.js';
 
 export default async function connectionToDiscordAPI():Promise<DiscordJs.Client>
 {
@@ -18,8 +20,8 @@ export default async function connectionToDiscordAPI():Promise<DiscordJs.Client>
             // Tikilist and Hidden VoiceChannel
         ]
     });
-
     
+    client.once("ready", setTikilist);
     client.once("ready", botIsReady);
     client.once("ready", disconnectFromAllVoiceChannels);
     client.login((await getSecrets()).botToken);
@@ -39,6 +41,11 @@ export default async function connectionToDiscordAPI():Promise<DiscordJs.Client>
             const memberMe = await guild.members.fetchMe();
             if (memberMe) memberMe.voice.disconnect();
         });
+    }
+
+    function setTikilist() {
+        const tiki = importJSON("./secret/tikitik.json")
+        init(client, tiki.serverID, tiki.userID);
     }
 
     return client;

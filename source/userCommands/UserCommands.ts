@@ -13,7 +13,7 @@ import { hide } from "./slashCommands/hide.js";
 import { test } from "./slashCommands/test.js";
 
 import { stop } from "./slashCommands/MusicPlayer/stop.js";
-import { play } from "./slashCommands/MusicPlayer/play.js";
+import { playtrack } from "./slashCommands/MusicPlayer/playtrack.js";
 import { pause } from "./slashCommands/MusicPlayer/pause.js";
 import { next } from "./slashCommands/MusicPlayer/next.js";
 import { playsound } from "./slashCommands/MusicPlayer/playsound.js";
@@ -28,7 +28,7 @@ export const slashCommands:Array<SlashCommandType> = [
     pc, pd, pk, pxtain,
     hide,
     test,
-    stop, play, pause, next, playsound, radio, localradio
+    stop, playtrack, pause, next, playsound, radio, localradio
 ];
 /// - - -
 ///> Right-Click Commands

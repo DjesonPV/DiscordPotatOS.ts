@@ -52,7 +52,7 @@ export class Track extends EventEmitter {
         if (this.type === TrackType.File && this.url !== null) {
             createAudioFileResource(`./resources/mp3sounds/${this.url}`).then(audio => {
                 this.emit(TrackStatus.AudioReady, audio);
-            }, (_) => {
+            }).catch( (_) => {
                 this.data = fetchFailedInfo(this.data);
                 this.failed = true;
                 this.emit(TrackStatus.DataReady);
@@ -60,7 +60,8 @@ export class Track extends EventEmitter {
         } else if (this.url !== null) {
             createAudioTrackResource(this.url).then(audio => {
                 this.emit(TrackStatus.AudioReady, audio);
-            }, (_) => {
+            }).catch(err => {
+                console.log(err);
                 this.data = fetchFailedInfo(this.data);
                 this.failed = true;
                 this.emit(TrackStatus.DataReady);

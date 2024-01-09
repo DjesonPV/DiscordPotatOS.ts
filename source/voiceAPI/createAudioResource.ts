@@ -8,17 +8,31 @@ import youtubeDl from 'youtube-dl-exec';
 import { YouTubeLiveStream } from 'ytls';
 import * as ChildProcess from 'child_process';
 
-export function createAudioTrackResource(url: string): Promise<DiscordJsVoice.AudioResource<null>> {
-    return new Promise(async function (resolve) {
-        const fileURL = await fetchFileURL(url);
+export async function createAudioTrackResource(url: string): Promise<DiscordJsVoice.AudioResource<null>> {
+ /*   return new Promise(async function (resolve, reject) {
+        fetchFileURL(url).then(fileURL => {
+            if (fileURL.startsWith('https://manifest.googlevideo.com/api/manifest/hls_playlist/'))
+                resolve(probeAndCreate(new YouTubeLiveStream(() => { return fileURL; })).then(result => result));
 
-        if (fileURL.startsWith('https://manifest.googlevideo.com/api/manifest/hls_playlist/'))
-            resolve(await probeAndCreate(new YouTubeLiveStream(() => { return fileURL; })));
+            const process = ChildProcess.spawn('ffmpeg', buildFFmpegArgs(url, fileURL), { windowsHide: true, shell: false });
 
-        const process = ChildProcess.spawn('ffmpeg', buildFFmpegArgs(url, fileURL), { windowsHide: true, shell: false });
+            process.once('spawn', async () => { resolve(await probeAndCreate(process.stdout)); });
+        }).catch((error) => reject(error));
+    });*/
 
-        process.once('spawn', async () => { resolve(await probeAndCreate(process.stdout)); });
-    });
+        return fetchFileURL(url).then(fileURL => {
+            if (fileURL.startsWith('https://manifest.googlevideo.com/api/manifest/hls_playlist/'))
+                return (probeAndCreate(new YouTubeLiveStream(() => { return fileURL; })));
+
+            const process = ChildProcess.spawn('ffmpeg', buildFFmpegArgs(url, fileURL), { windowsHide: true, shell: false });
+
+            return new Promise( resolve => { 
+                process.once('spawn', async () => { 
+                    resolve ( probeAndCreate(process.stdout)); 
+                })
+                ;
+            });
+        })
 }
 
 export async function createAudioFileResource(fileLocation: string) {
@@ -50,7 +64,7 @@ async function fetchFileURL(query: string) {
             print: 'urls',
             simulate: true,
         } as any
-    ))?.stdout;
+    ).catch(_ => { throw new Error('YTDLP shat himself')}))?.stdout;
 
     if (ytdlURL === undefined) throw new Error('YTDLP returned no URL');
 

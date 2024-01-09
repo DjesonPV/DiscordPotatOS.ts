@@ -186,10 +186,11 @@ async function fetchAudioTrackInfo(url: string , query: string): Promise<[InfoFo
 
                 if (metadata.extractor === 'generic') reject('FetchAudioInfo:\n• Generic extracor, will use custom Info');
                 else resolve(metadata);
-            })
+            }).catch(_ => {console.log(">>>>>>>>>>aled");})
         })
 
-    ]).then(async function (metadata: any) {
+    ])
+    .then(async function (metadata: any) {
         const authorName = `${metadata.webpage_url_domain} • ${metadata.channel ?? metadata.artist ?? metadata.uploader ?? metadata.creator}`;
         const authorURL = metadata.uploader_url ?? metadata.channel_url ?? metadata.webpage_url;
         const duration = metadata.duration;
@@ -220,6 +221,7 @@ async function fetchAudioTrackInfo(url: string , query: string): Promise<[InfoFo
         return [info, isLive];
     },
         function (reason) {
+            console.log(`query : ${query}`);
             return [failedYoutubeInfo(url, query), true];
         }
     )
@@ -285,8 +287,8 @@ function failedRadioGardenInfo(url: string, query: string): InfoFormat {
     };
 }
 
-function failedYoutubeInfo(url: string, query: string|null): InfoFormat {
-    if (query == null) return failedYTDLInfo(url);
+function failedYoutubeInfo(url: string, query: string): InfoFormat {
+    if (query === url) return failedYTDLInfo(url);
     return {
         author: {
             name: `YouTube`,

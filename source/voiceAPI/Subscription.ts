@@ -84,6 +84,7 @@ export class Subscription {
             this.tracklist.now.createAudioResource();
 
             this.tracklist.now.once(TrackStatus.AudioReady, (audio: DiscordJsVoice.AudioResource<null>) => {
+                console.log("audioReady");
                 audio.volume?.setVolume(this.tracklist.now.volume ?? 0.3);
                 this.audioPlayer.play(audio);
             });
@@ -92,6 +93,7 @@ export class Subscription {
                 this.musicDisplayerFullUpdate();
             } else {
                 this.tracklist.now.once(TrackStatus.DataReady, () => {
+                    console.log("dataREady")
                     this.musicDisplayerFullUpdate();
                 });
             }

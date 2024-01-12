@@ -9,17 +9,6 @@ import { YouTubeLiveStream } from 'ytls';
 import * as ChildProcess from 'child_process';
 
 export async function createAudioTrackResource(url: string): Promise<DiscordJsVoice.AudioResource<null>> {
- /*   return new Promise(async function (resolve, reject) {
-        fetchFileURL(url).then(fileURL => {
-            if (fileURL.startsWith('https://manifest.googlevideo.com/api/manifest/hls_playlist/'))
-                resolve(probeAndCreate(new YouTubeLiveStream(() => { return fileURL; })).then(result => result));
-
-            const process = ChildProcess.spawn('ffmpeg', buildFFmpegArgs(url, fileURL), { windowsHide: true, shell: false });
-
-            process.once('spawn', async () => { resolve(await probeAndCreate(process.stdout)); });
-        }).catch((error) => reject(error));
-    });*/
-
         return fetchFileURL(url).then(fileURL => {
             if (fileURL.startsWith('https://manifest.googlevideo.com/api/manifest/hls_playlist/'))
                 return (probeAndCreate(new YouTubeLiveStream(() => { return fileURL; })));
@@ -84,11 +73,12 @@ function buildFFmpegArgs(queryURL: string, fileURL: string) {
     ] : []).concat([
         '-i', fileURL,
         '-analyzeduration', '0',
+        '-map', 'a',
         '-loglevel', '0',
         '-ar', '48000',
         '-ac', '2',
         '-f', 'opus',
-        '-acodec', "libopus",
+        '-codec:a', "libopus",
         'pipe:1'
     ]);
 }

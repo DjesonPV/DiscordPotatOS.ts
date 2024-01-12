@@ -429,7 +429,7 @@ function YYYYMMDDToString(yyyymmdd: string) {
 
     const parsedYear = year.replace(/^0+/, '');
 
-    const monthChoice = parseInt(month) - 1;
+    const monthChoice = parseInt(month);
     const parsedMonth = Lang.get(`MP_GUI_shortMonth${monthChoice}`);
 
     const parsedDay = day.replace(/^0+/, '');

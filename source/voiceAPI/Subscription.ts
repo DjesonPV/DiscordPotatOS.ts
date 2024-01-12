@@ -84,19 +84,17 @@ export class Subscription {
             this.tracklist.now.createAudioResource();
 
             this.tracklist.now.once(TrackStatus.AudioReady, (audio: DiscordJsVoice.AudioResource<null>) => {
-                console.log("audioReady");
                 audio.volume?.setVolume(this.tracklist.now.volume ?? 0.3);
                 this.audioPlayer.play(audio);
             });
 
-            if (this.tracklist.now.isDataReady) {
+            if (this.tracklist.now.isDataReady)
                 this.musicDisplayerFullUpdate();
-            } else {
-                this.tracklist.now.once(TrackStatus.DataReady, () => {
-                    console.log("dataREady")
-                    this.musicDisplayerFullUpdate();
-                });
-            }
+
+            this.tracklist.now.on(TrackStatus.DataReady, () => {
+                this.musicDisplayerFullUpdate();
+            });
+
         });
 
         this.audioPlayer.on(AudioPlayerEvent.Next, () => {

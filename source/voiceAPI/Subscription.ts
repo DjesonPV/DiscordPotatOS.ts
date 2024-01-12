@@ -115,6 +115,7 @@ export class Subscription {
         // TrackList
         this.tracklist.now.once(TrackStatus.AudioReady, (audio: DiscordJsVoice.AudioResource<null>) => {
             audio.volume?.setVolume(this.tracklist.now.volume ?? 0.3);
+            this.updateMusicDisplayerButton();
             this.audioPlayer.play(audio);
         });
 
@@ -169,6 +170,7 @@ export class Subscription {
     }
 
     resume() {
+        if (this.tracklist.now.isLive) this.tracklist.now.isAudioReady = false;
         this.audioPlayer.unpause(this.tracklist.now.isLive);
     }
 
@@ -183,7 +185,8 @@ export class Subscription {
         const isLive = this.tracklist.now.isLive;
         const isPaused = this.audioPlayer.paused;
         const hasQueue = this.tracklist.hasQueue;
-        this.musicDisplayer.updateButtons(isLive, isPaused, hasQueue);
+        const isReady = this.tracklist.now.isAudioReady;
+        this.musicDisplayer.updateButtons(isLive, isPaused, hasQueue, undefined, isReady);
     }
 
     musicDisplayerFullUpdate() {

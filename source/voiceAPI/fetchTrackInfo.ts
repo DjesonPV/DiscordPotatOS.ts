@@ -186,7 +186,7 @@ async function fetchAudioTrackInfo(url: string , query: string): Promise<[InfoFo
 
                 if (metadata.extractor === 'generic') reject('FetchAudioInfo:\n• Generic extracor, will use custom Info');
                 else resolve(metadata);
-            }).catch(_ => {console.log(">>>>>>>>>>aled");})
+            }).catch(err=> {console.error(`\n• • • MUSIC PLAYER ERROR\n • date: ${Date.now()}\n • url: ${url}\n • query: ${query}\n • error: ${err}\n• • •\n`);})
         })
 
     ])
@@ -221,7 +221,6 @@ async function fetchAudioTrackInfo(url: string , query: string): Promise<[InfoFo
         return [info, isLive];
     },
         function (reason) {
-            console.log(`query : ${query}`);
             return [failedYoutubeInfo(url, query), true];
         }
     )

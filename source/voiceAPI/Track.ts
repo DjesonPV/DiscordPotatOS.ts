@@ -26,6 +26,7 @@ export class Track extends EventEmitter {
     isLive: boolean | undefined;
     //volume: number | undefined;
     //type: TrackType;
+    isAudioReady = false;
     failed = false;
 
     constructor(
@@ -49,23 +50,18 @@ export class Track extends EventEmitter {
     }
 
     async createAudioResource() {
-        if (this.type === TrackType.File && this.url !== null) {
-            createAudioFileResource(`./resources/mp3sounds/${this.url}`).then(audio => {
+        if (this.url !== null) {
+            ( this.type === TrackType.File
+                ? createAudioFileResource(`./resources/mp3sounds/${this.url}`)
+                : createAudioTrackResource(this.url)
+            ).then(audio => {
+                this.isAudioReady = true;
                 this.emit(TrackStatus.AudioReady, audio);
             }).catch( (_) => {
                 this.data = fetchFailedInfo(this.data);
                 this.failed = true;
                 this.emit(TrackStatus.DataReady);
             });
-        } else if (this.url !== null) {
-            createAudioTrackResource(this.url).then(audio => {
-                this.emit(TrackStatus.AudioReady, audio);
-            }).catch(err => {
-                console.log(err);
-                this.data = fetchFailedInfo(this.data);
-                this.failed = true;
-                this.emit(TrackStatus.DataReady);
-            })
         } else {
             this.data = fetchFailedInfo(this.data);
             this.failed = true;

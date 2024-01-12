@@ -18,7 +18,7 @@ export class MusicDisplayer {
     //private guildName:string;
     private deleted = false;
     private tracklistRow: DiscordJs.ActionRowBuilder<DiscordJs.StringSelectMenuBuilder> | null = null;
-    private buttonRow: DiscordJs.ActionRowBuilder<DiscordJs.ButtonBuilder> = this.updateButtons(false, true, false, true);
+    private buttonRow: DiscordJs.ActionRowBuilder<DiscordJs.ButtonBuilder>;// = this.updateButtons(false, true, false, true);
     private embed: DiscordJs.EmbedBuilder;
     message: DiscordJs.Message | null = null;
     //private textChannel: DiscordJs.TextBasedChannel;
@@ -34,7 +34,7 @@ export class MusicDisplayer {
         private textChannel: DiscordJs.TextBasedChannel
     ) {
         this.embed = this.updateEmbed(firstTrackInfo, channelName);
-        this.buttonRow = this.updateButtons(true, true, false, true);
+        this.buttonRow = this.updateButtons(true, true, false, true, false);
     }
 
     private async updateMessage() {
@@ -59,11 +59,11 @@ export class MusicDisplayer {
         this.timeout = setTimeout(() => { if (!this.deleted) this.updateMessage(); }, 100);
     }
 
-    updateButtons(isLive: boolean | undefined, isPaused: boolean, hasQueue: boolean, disableAll: boolean = false) {
+    updateButtons(isLive: boolean | undefined, isPaused: boolean, hasQueue: boolean, disableAll: boolean = false, isAudioReady:boolean = false) {
         this.buttonRow = new DiscordJs.ActionRowBuilder<DiscordJs.ButtonBuilder>()
             .addComponents(
                 display.button(false),
-                playpause.button(isPaused, isLive, disableAll),
+                playpause.button(isPaused, isLive, disableAll, isAudioReady),
                 next.button(!hasQueue || disableAll),
                 stop.button(false)
             );

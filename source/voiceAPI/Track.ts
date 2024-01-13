@@ -41,32 +41,37 @@ export class Track extends EventEmitter {
         this.isLive = type === TrackType.File ? false : (type === TrackType.Track ? undefined : true);
 
         this.data = placeholderInfo(this);
-
-        fetchTrackInfo(this).then((info) => {
-            this.data = info;
-            this.isDataReady = true;
-            this.emit(TrackStatus.DataReady);
-        });
+        this.fetchData();            
     }
 
-    async createAudioResource() {
-        if (this.url !== null) {
-            ( this.type === TrackType.File
-                ? createAudioFileResource(`./resources/mp3sounds/${this.url}`)
-                : createAudioTrackResource(this.url)
-            ).then(audio => {
-                this.isAudioReady = true;
-                this.emit(TrackStatus.AudioReady, audio);
-            }).catch( (_) => {
-                this.data = fetchFailedInfo(this.data);
-                this.failed = true;
-                this.emit(TrackStatus.DataReady);
-            });
-        } else {
-            this.data = fetchFailedInfo(this.data);
-            this.failed = true;
+    async fetchData(){
+        try{
+            this.data = await fetchTrackInfo(this);
+        } catch (error) {
+            console.warn(error);
+        } finally {
+            this.isDataReady = true;
             this.emit(TrackStatus.DataReady);
         }
     }
-}
 
+    async createAudioResource() {
+        try {
+            if (this.url == null) {
+                throw new Error("Track url is null")
+            } else {
+                const audio = this.type === TrackType.File
+                    ? await createAudioFileResource(`./resources/mp3sounds/${this.url}`)
+                    : await createAudioTrackResource(this.url)
+                this.isAudioReady = true;
+                this.emit(TrackStatus.AudioReady, audio);         
+            }
+        } catch (error) {
+            console.warn(`• • • Track\n • createAudioResource\n ${error}\n • • •\n`);
+            this.data = fetchFailedInfo(this.data);
+            this.failed = true;
+            this.emit(TrackStatus.DataReady);
+            // emit audioFailed for handling
+        }
+    }
+}

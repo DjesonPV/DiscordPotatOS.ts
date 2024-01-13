@@ -43,8 +43,8 @@ export class MusicDisplayer {
         if (this.message == null) {
             if (this.messageLock == false) {
                 this.messageLock = true;
-                this.message = await Messages.print(this.textChannel, { embeds: [this.embed], components: [this.buttonRow] })
-                    .then((message) => { this.messageLock = false; return message });
+                this.message = await Messages.print(this.textChannel, { embeds: [this.embed], components: [this.buttonRow] });
+                this.messageLock = false;
             }
         } else {
             const components: (DiscordJs.ActionRowBuilder<DiscordJs.StringSelectMenuBuilder | DiscordJs.ButtonBuilder>)[] = [this.buttonRow];
@@ -56,7 +56,7 @@ export class MusicDisplayer {
 
     private pushUpdate() {
         if (this.timeout !== null) clearTimeout(this.timeout);
-        this.timeout = setTimeout(() => { if (!this.deleted) this.updateMessage(); }, 100);
+        this.timeout = setTimeout(async () => { if (!this.deleted) await this.updateMessage(); }, 100);
     }
 
     updateButtons(isLive: boolean | undefined, isPaused: boolean, hasQueue: boolean, disableAll: boolean = false, isAudioReady:boolean = false) {

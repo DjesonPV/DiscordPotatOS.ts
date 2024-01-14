@@ -57,9 +57,9 @@ export async function fetchTrackInfo (track:Track) {
             return curateInfo(await fetchRadioGardenInfo(track.url, track.query));
         case TrackType.Track:
             if (track.url === null) throw new Error("FetchAudioInfo:\n• no track URL");
-            const [data, isLive] = await fetchAudioTrackInfo(track.url, track.query);
-            track.isLive = isLive;
-            return curateInfo(data);
+            const info = await fetchAudioTrackInfo(track.url, track.query);
+            track.isLive = info.isLive;
+            return curateInfo(info.info);
         case TrackType.Unknown:
         default:
             if (track.url === null) throw new Error("FetchAudioInfo:\n• no URL");
@@ -169,60 +169,77 @@ function fetchAudioFileInfo(key: string): InfoFormat {
     };
 }
 
-async function fetchAudioTrackInfo(url: string , query: string) { 
-    try {
-        const timeout = setTimeout(()=> {throw new Error('Timed out');} , 5000);
-        const data = await youtubeDl.exec(
-            url,
-            {
-                embedMetadata: true,
-                noEmbedChapters: true,
-                noEmbedInfoJson: true,
-                simulate: true,
-                dumpSingleJson: true,
-            } as any
-        ).then(out => out); // because eh
+function timeLimit(fun:Promise<any>, ms:number) {
+    return new Promise (async (resolve, reject) => {
+        const timeout = setTimeout(() => {reject('Timed out')}, 5000)
+        try {
+            const data = await fun;
+            resolve(data);
+        } catch (error) {
+            reject(error)
+        } finally {
+            clearTimeout(timeout);
+        }
+    });
+}
 
-        const metadata = JSON.parse(data.stdout);
-        if (metadata.extracor === 'generic') throw new Error("Generic extracor, will use custom Info");
-        
-        clearTimeout(timeout);
-        return parseYTDLMetadata(metadata);
+async function fetchAudioTrackInfo(url: string , query: string) { 
+    try {     
+        const metadata = await timeLimit(fetchYTDLData(url), 5000) as any;
+
+        const authorName = `${metadata.webpage_url_domain} • ${metadata.channel ?? metadata.artist ?? metadata.uploader ?? metadata.creator}`;
+        const authorURL = metadata.uploader_url ?? metadata.channel_url ?? metadata.webpage_url;
+        const duration = metadata.duration;
+        const iconURL = `https://s2.googleusercontent.com/s2/favicons?domain_url=${metadata.webpage_url_domain}&sz=48`;
+        const isLive = `${metadata.is_live}`== "true";
+        const title = metadata.fulltitle || metadata.title;
+        const thumbnail = metadata.thumbnail ?? "";//LANG.musicdisplayerDefaultThumbnail;
+        const uploadDate = metadata.upload_date;
+        const weburl = metadata.webpage_url;
+        const viewCount = metadata.view_count;
+
+        const info: InfoFormat = {
+            author: {
+                name: authorName,
+                iconURL: iconURL,
+                url: authorURL,
+            },
+            color: await getColorFromSiteUrl(url),
+            description: `${isLive ? `🔴 LIVE` : durationToString(duration)} • ${viewsToString(viewCount)} • ${YYYYMMDDToString(uploadDate)}`,
+            title: title,
+            thumbnail: thumbnail,
+            url: weburl,
+
+            playlistDescription: `${authorName} • ${isLive ? `⬤ LIVE` : durationToString(duration)} • ${viewsToString(viewCount)} • ${YYYYMMDDToString(uploadDate)}`,
+            playlistTitle: title,
+        }
+
+        return {info:info, isLive: isLive};
+
     } catch (error) {
         console.warn(`• • • Music Player\n • fetchAudioTrackInfo\n • error: ${error}\n• • •\n`);
-        return failedYoutubeInfo(url, query);
+        return {
+            info: failedYoutubeInfo(url, query),
+            isLive : true
+        }
     }
 }
 
-async function parseYTDLMetadata(metadata:any) {
-    const authorName = `${metadata.webpage_url_domain} • ${metadata.channel ?? metadata.artist ?? metadata.uploader ?? metadata.creator}`;
-    const authorURL = metadata.uploader_url ?? metadata.channel_url ?? metadata.webpage_url;
-    const duration = metadata.duration;
-    const iconURL = `https://s2.googleusercontent.com/s2/favicons?domain_url=${metadata.webpage_url_domain}&sz=48`;
-    const isLive = `${metadata.is_live}`== "true";
-    const title = metadata.fulltitle || metadata.title;
-    const thumbnail = metadata.thumbnail ?? "";//LANG.musicdisplayerDefaultThumbnail;
-    const uploadDate = metadata.upload_date;
-    const url = metadata.webpage_url;
-    const viewCount = metadata.view_count;
+async function fetchYTDLData(url:string) {
+    const data = await youtubeDl.exec(
+        url,
+        {
+            embedMetadata: true,
+            noEmbedChapters: true,
+            noEmbedInfoJson: true,
+            simulate: true,
+            dumpSingleJson: true,
+        } as any
+    ).then(out => out); // because eh
 
-    const info: InfoFormat = {
-        author: {
-            name: authorName,
-            iconURL: iconURL,
-            url: authorURL,
-        },
-        color: await getColorFromSiteUrl(url),
-        description: `${isLive ? `🔴 LIVE` : durationToString(duration)} • ${viewsToString(viewCount)} • ${YYYYMMDDToString(uploadDate)}`,
-        title: title,
-        thumbnail: thumbnail,
-        url: url,
-
-        playlistDescription: `${authorName} • ${isLive ? `⬤ LIVE` : durationToString(duration)} • ${viewsToString(viewCount)} • ${YYYYMMDDToString(uploadDate)}`,
-        playlistTitle: title,
-    }
-
-    return [info, isLive] as [InfoFormat, boolean];
+    const metadata = JSON.parse(data.stdout);
+    if (metadata.extracor === 'generic') throw new Error("Generic extracor, will use custom Info");
+    return metadata;
 }
 
 async function fetchRadioGardenInfo(url: string, query: string) {
@@ -289,9 +306,9 @@ function failedRadioGardenInfo(url: string, query: string): InfoFormat {
     };
 }
 
-function failedYoutubeInfo(url: string, query: string): [InfoFormat, boolean] {
-    if (query === url) return [failedYTDLInfo(url), true];
-    return [{
+function failedYoutubeInfo(url: string, query: string): InfoFormat {
+    if (query === url) return failedYTDLInfo(url);
+    return {
         author: {
             name: `YouTube`,
             url: `https://www.youtube.com/`,
@@ -304,7 +321,7 @@ function failedYoutubeInfo(url: string, query: string): [InfoFormat, boolean] {
         thumbnail: botPersonality.musicPlayerDefaultThumbnail,
         playlistDescription: query,
         playlistTitle: `YouTube ○ /${url.match(/https:\/\/www\.youtube\.com\/([^&]+)/)?.[1] ?? ''}`,
-    }, true];
+    };
 }
 
 function failedYTDLInfo(url: string): InfoFormat {
@@ -341,11 +358,10 @@ async function getColorFromSiteUrl(url: string) {
         const cleanURL = url.match(/(?:http|https):\/\/(?:[^\/])+\//)?.[0];
         
         if (cleanURL === undefined) throw new Error("Clean URL not defined");
-        const timeout = setTimeout(() => {throw new Error("Color Timed Out");}, 500);
-
-        const color = await favcolor.fromSiteFavicon(cleanURL);
+        
+        
+        const color = await (timeLimit(favcolor.fromSiteFavicon(cleanURL), 500) as Promise<{r: number; g: number; b: number; toHex: () => string;}>);
         const hexColor = color.toHex()  as DiscordJs.ColorResolvable;
-        clearTimeout(timeout);
         return hexColor;
         
     } catch (error) {

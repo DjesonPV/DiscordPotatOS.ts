@@ -67,7 +67,7 @@ async function fetchFileURL(query: string) {
 
         return `${ytdlURL}`;
     } catch (error) {
-        throw new Error(`• fetchFileURL youtubeDL.exec\n • date: ${Date.now()}\n • \n • query: ${query}\n • error: ${error}\n• • •\n`);
+        throw new Error(`• fetchFileURL youtubeDL.exec\n • date: ${Date.now()}\n • \n • query: ${query}\n • error: ${error}\n`);
     }
 }
 

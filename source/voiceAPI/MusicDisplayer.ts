@@ -64,8 +64,8 @@ export class MusicDisplayer {
             .addComponents(
                 display.button(false),
                 playpause.button(isPaused, isLive, disableAll, isAudioReady),
-                next.button(!hasQueue || disableAll),
-                stop.button(false)
+                next.button(disableAll, !hasQueue),
+                stop.button(!hasQueue)
             );
         this.pushUpdate();
         return this.buttonRow;

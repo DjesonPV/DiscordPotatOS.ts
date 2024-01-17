@@ -89,7 +89,8 @@ function buildFFmpegArgs(queryURL: string, fileURL: string) {
         '-ar', '48000',
         '-ac', '2',
         '-f', 'opus',
-        '-codec:a', "libopus",
+        //'-codec:a', "libopus",
+        '-vn', '-sn', '-dn',
         'pipe:1'
     ]);
 }

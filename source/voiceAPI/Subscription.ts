@@ -80,74 +80,53 @@ export class Subscription {
             this.updateMusicDisplayerButton();
         });
 
-        this.audioPlayer.on(AudioPlayerEvent.PleasePlay, () => {
-            this.tracklist.now.createAudioResource();
-
-            this.tracklist.now.once(TrackStatus.AudioReady, (audio: DiscordJsVoice.AudioResource<null>) => {
-                audio.volume?.setVolume(this.tracklist.now.volume ?? 0.3);
-                this.audioPlayer.play(audio);
-            });
-
-            if (this.tracklist.now.isDataReady)
-                this.musicDisplayerFullUpdate();
-
-            this.tracklist.now.on(TrackStatus.DataReady, () => {
-                this.musicDisplayerFullUpdate();
-            });
-
+        this.audioPlayer.on(AudioPlayerEvent.PleasePlay, (isAudioPlayerRetry:boolean) => {
+            this.tracklist.now.createAudioResource(isAudioPlayerRetry);
         });
-
+        
         this.audioPlayer.on(AudioPlayerEvent.Next, () => {
             this.next();
         });
-
+        
         this.audioPlayer.on(AudioPlayerEvent.Error, () => {
+            this.audioPlayer.emit(AudioPlayerEvent.Next);
         });
 
         this.audioPlayer.on(AudioPlayerEvent.Retry, () => {
-            this.tracklist.now.createAudioResource();
+            this.play(true, true);
         });
 
         this.audioPlayer.on(AudioPlayerEvent.Failed, () => {
+            this.audioPlayer.emit(AudioPlayerEvent.Next);
         });
-
+        
         // - - - 
         // TrackList
-        this.tracklist.now.once(TrackStatus.AudioReady, (audio: DiscordJsVoice.AudioResource<null>) => {
-            audio.volume?.setVolume(this.tracklist.now.volume ?? 0.3);
-            this.updateMusicDisplayerButton();
-            this.audioPlayer.play(audio);
-        });
-
-        this.tracklist.now.once(TrackStatus.DataReady, () => {
-            this.musicDisplayer.updateEmbed(this.tracklist.now.data, this.channelName);
-        });
-
         this.tracklist.on(TracklistState.Changed, () => {
             this.musicDisplayer.updatePlaylist(this.tracklist);
             this.updateMusicDisplayerButton();
         });
-
+        
         this.tracklist.on(TracklistState.Empty, () => {
             this.unsubscribe();
         });
-
+        
         this.tracklist.on(TracklistState.Next, () => {
-            this.audioPlayer.unpause(true);
+            this.play(true);
         });
-
+        
         // - - -
         // Voice Connection
 
-        this.voiceConnection.on(VoiceConnectionState.Destroyed, () => { this.unsubscribe() });
+        this.voiceConnection.once(VoiceConnectionState.Destroyed, () => { this.unsubscribe() });
 
         this.voiceConnection.on(VoiceConnectionState.Moved, async () => {
             this.channelName = await this.voiceConnection.getChannelName();
             this.musicDisplayerFullUpdate();
         })
 
-        this.voiceConnection.on(VoiceConnectionState.Ready, () => {
-            this.tracklist.now.createAudioResource();
+        this.voiceConnection.once(VoiceConnectionState.Ready, () => {
+            this.play(true);
         })
 
         // ASYNC LIAISON
@@ -170,27 +149,31 @@ export class Subscription {
     }
 
     resume() {
-        if (this.tracklist.now.isLive) this.tracklist.now.isAudioReady = false;
-        this.audioPlayer.unpause(this.tracklist.now.isLive);
+        if (this.tracklist.now.isLive || this.tracklist.now.failed) {
+            this.tracklist.now.isAudioReady = false;
+            this.tracklist.now.failed = false;
+            this.updateMusicDisplayerButton();
+        }
+        this.play(this.tracklist.now.isLive || this.tracklist.now.failed);
     }
 
     playTrackNow(track: Track) {
         this.audioPlayer.pause(true);
         this.tracklist.setNow(track);
         this.musicDisplayerFullUpdate();
-        this.audioPlayer.unpause(true);
+        this.play(true);
     }
 
-    updateMusicDisplayerButton() {
+    updateMusicDisplayerButton(hasAudioFailed: boolean = false) {
         const isLive = this.tracklist.now.isLive;
         const isPaused = this.audioPlayer.paused;
         const hasQueue = this.tracklist.hasQueue;
         const isReady = this.tracklist.now.isAudioReady;
-        this.musicDisplayer.updateButtons(isLive, isPaused, hasQueue, undefined, isReady);
+        this.musicDisplayer.updateButtons(isLive, isPaused, hasQueue, undefined, isReady, hasAudioFailed);
     }
 
-    musicDisplayerFullUpdate() {
-        this.updateMusicDisplayerButton();
+    musicDisplayerFullUpdate(hasAudioFailed:boolean = false) {
+        this.updateMusicDisplayerButton(hasAudioFailed);
         this.musicDisplayer.updateEmbed(this.tracklist.now.data, this.channelName);
         this.musicDisplayer.updatePlaylist(this.tracklist);
     }
@@ -209,5 +192,30 @@ export class Subscription {
         this.tracklist.destroy();
         this.musicDisplayer.delete();
         Subscription.guildSubscriptions.delete(guildId);
+    }
+
+    private play(isNew:boolean = true, isAudioPlayerRetry: boolean = false) {
+        this.audioPlayer.unpause(isNew, isAudioPlayerRetry);
+        
+        if (this.tracklist.now.isDataReady) {
+            this.musicDisplayerFullUpdate();
+        } else {
+            this.tracklist.now.once(TrackStatus.DataReady, () => {
+                this.musicDisplayer.updateEmbed(this.tracklist.now.data, this.channelName);
+            });
+        }
+
+        if (isNew) {
+            this.tracklist.now.once(TrackStatus.AudioReady, (audio: DiscordJsVoice.AudioResource<any>, audioplayerRetry:boolean) => {
+                audio.volume?.setVolume(this.tracklist.now.volume ?? 0.3);
+                this.audioPlayer.play(audio, audioplayerRetry);
+                this.updateMusicDisplayerButton();
+            });
+    
+    
+            this.tracklist.now.once(TrackStatus.AudioFailed, () => {
+                this.musicDisplayerFullUpdate(true);
+            });            
+        }
     }
 }

@@ -1,7 +1,7 @@
 import EventEmitter from "node:events";
 import * as DiscordJs from 'discord.js';
 import * as DiscordJsVoice from '@discordjs/voice';
-import { fetchTrackInfo, TrackInfo, placeholderInfo, fetchFailedInfo } from "./fetchTrackInfo.js";
+import { fetchTrackInfo, TrackInfo, placeholderInfo, addFailedMessageToInfo } from "./fetchTrackInfo.js";
 import { createAudioFileResource, createAudioTrackResource } from "./createAudioResource.js";
 
 export enum TrackType {
@@ -14,7 +14,8 @@ export enum TrackType {
 
 export enum TrackStatus {
     DataReady = "dataReady",
-    AudioReady = "audioReady"
+    AudioReady = "audioReady",
+    AudioFailed = "audioFailed"
 }
 
 export class Track extends EventEmitter {
@@ -55,7 +56,7 @@ export class Track extends EventEmitter {
         }
     }
 
-    async createAudioResource() {
+    async createAudioResource(isNew:boolean = false) {
         try {
             if (this.url == null) {
                 throw new Error("Track url is null")
@@ -64,13 +65,13 @@ export class Track extends EventEmitter {
                     ? await createAudioFileResource(`./resources/mp3sounds/${this.url}`)
                     : await createAudioTrackResource(this.url)
                 this.isAudioReady = true;
-                this.emit(TrackStatus.AudioReady, audio);         
+                this.emit(TrackStatus.AudioReady, audio, isNew);         
             }
         } catch (error) {
             console.warn(`• • • Track\n • createAudioResource\n ${error}\n • • •\n`);
-            this.data = fetchFailedInfo(this.data);
+            this.data = addFailedMessageToInfo(this.data);
             this.failed = true;
-            this.emit(TrackStatus.DataReady);
+            this.emit(TrackStatus.AudioFailed);
             // emit audioFailed for handling
         }
     }

@@ -126,7 +126,7 @@ export function placeholderInfo(track:Track) {
 /// - - -
 ///> Fetch Audio Failed modifier
 
-export function fetchFailedInfo(info:TrackInfo):TrackInfo {
+export function addFailedMessageToInfo(info:TrackInfo):TrackInfo {
 
     const errorMessage = Lang.get("MP_GUI_audioFetchFailed");
 

@@ -59,12 +59,12 @@ export class MusicDisplayer {
         this.timeout = setTimeout(async () => { if (!this.deleted) await this.updateMessage(); }, 100);
     }
 
-    updateButtons(isLive: boolean | undefined, isPaused: boolean, hasQueue: boolean, disableAll: boolean = false, isAudioReady:boolean = false) {
+    updateButtons(isLive: boolean | undefined, isPaused: boolean, hasQueue: boolean, disableAll: boolean = false, isAudioReady:boolean = false, hasAudioFailed: boolean = false) {
         this.buttonRow = new DiscordJs.ActionRowBuilder<DiscordJs.ButtonBuilder>()
             .addComponents(
                 display.button(false),
-                playpause.button(isPaused, isLive, disableAll, isAudioReady),
-                next.button(disableAll, !hasQueue),
+                playpause.button(isPaused, isLive, disableAll, isAudioReady, hasAudioFailed),
+                next.button(disableAll, !hasQueue, hasAudioFailed),
                 stop.button(!hasQueue)
             );
         this.pushUpdate();

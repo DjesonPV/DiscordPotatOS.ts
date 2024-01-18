@@ -42,7 +42,8 @@ export type TrackInfo = {
     thumbnail: string,
     url: string | null,
     playlistDescription: string,
-    playlistTitle: string
+    playlistTitle: string,
+    audioFailed?: boolean
 }
 
 
@@ -122,30 +123,6 @@ export function placeholderInfo(track:Track) {
     });
 
 }
-
-/// - - -
-///> Fetch Audio Failed modifier
-
-export function addFailedMessageToInfo(info:TrackInfo):TrackInfo {
-
-    const errorMessage = Lang.get("MP_GUI_audioFetchFailed");
-
-    return {
-        author: {
-            name: info.author.name,
-            iconURL: botPersonality.errorIcon,
-            url: info.author.url
-        },
-        color: botPersonality.errorColor as DiscordJs.ColorResolvable,
-        description: info.description.substring(0, DESCRIPTION_LIMIT-errorMessage.length).concat(errorMessage),
-        title: info.title,
-        thumbnail: info.thumbnail,
-        url: info.url,
-        playlistDescription: info.playlistDescription,
-        playlistTitle: info.playlistTitle
-    }
-}
-
 
 /// - - -
 ///> fecthInfo

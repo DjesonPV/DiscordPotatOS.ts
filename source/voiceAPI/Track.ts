@@ -1,7 +1,7 @@
 import EventEmitter from "node:events";
 import * as DiscordJs from 'discord.js';
 import * as DiscordJsVoice from '@discordjs/voice';
-import { fetchTrackInfo, TrackInfo, placeholderInfo, addFailedMessageToInfo } from "./fetchTrackInfo.js";
+import { fetchTrackInfo, TrackInfo, placeholderInfo } from "./fetchTrackInfo.js";
 import { createAudioFileResource, createAudioTrackResource } from "./createAudioResource.js";
 
 export enum TrackType {
@@ -51,12 +51,14 @@ export class Track extends EventEmitter {
         } catch (error) {
             console.warn(error);
         } finally {
+            this.updateFailStatus(this.failed);
             this.isDataReady = true;
             this.emit(TrackStatus.DataReady);
         }
     }
 
     async createAudioResource(isNew:boolean = false) {
+        this.updateFailStatus(false);
         try {
             if (this.url == null) {
                 throw new Error("Track url is null")
@@ -69,10 +71,14 @@ export class Track extends EventEmitter {
             }
         } catch (error) {
             console.warn(`• • • Track\n • createAudioResource\n ${error}\n • • •\n`);
-            this.data = addFailedMessageToInfo(this.data);
-            this.failed = true;
+            this.updateFailStatus(true);
             this.emit(TrackStatus.AudioFailed);
             // emit audioFailed for handling
         }
+    }
+
+    private updateFailStatus(hasFail: boolean) {
+        this.failed = hasFail;
+        this.data.audioFailed = hasFail;
     }
 }

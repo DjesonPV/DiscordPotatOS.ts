@@ -27,6 +27,8 @@ export class MusicDisplayer {
 
     private timeout: NodeJS.Timeout | null = null;
 
+    private displayFailAudioMessage: boolean = false;
+
     constructor(
         private guildName: string,
         private channelName: string,
@@ -40,16 +42,21 @@ export class MusicDisplayer {
     private async updateMessage() {
         if (this.textChannel === undefined) return;
 
+        const payload : DiscordJs.BaseMessageOptions = {
+            embeds: [this.embed],
+            components : [this.buttonRow]
+        };
+        if (this.tracklistRow !== null) payload.components?.unshift(this.tracklistRow);
+        if (this.displayFailAudioMessage) payload.embeds?.push(errorEmbed);
+        
         if (this.message == null) {
             if (this.messageLock == false) {
                 this.messageLock = true;
-                this.message = await Messages.print(this.textChannel, { embeds: [this.embed], components: [this.buttonRow] });
+                this.message = await Messages.print(this.textChannel, payload);
                 this.messageLock = false;
             }
-        } else {
-            const components: (DiscordJs.ActionRowBuilder<DiscordJs.StringSelectMenuBuilder | DiscordJs.ButtonBuilder>)[] = [this.buttonRow];
-            if (this.tracklistRow !== null) components.unshift(this.tracklistRow);
-            this.message = await Messages.edit(this.message, { embeds: [this.embed], components: components });
+        } else {          
+            this.message = await Messages.edit(this.message, payload);
         }
         this.timeout = null;
     }
@@ -59,12 +66,12 @@ export class MusicDisplayer {
         this.timeout = setTimeout(async () => { if (!this.deleted) await this.updateMessage(); }, 100);
     }
 
-    updateButtons(isLive: boolean | undefined, isPaused: boolean, hasQueue: boolean, disableAll: boolean = false, isAudioReady:boolean = false, hasAudioFailed: boolean = false) {
+    updateButtons(isLive: boolean | undefined, isPaused: boolean, hasQueue: boolean, disableAll: boolean = false, isAudioReady:boolean = false) {
         this.buttonRow = new DiscordJs.ActionRowBuilder<DiscordJs.ButtonBuilder>()
             .addComponents(
                 display.button(false),
-                playpause.button(isPaused, isLive, disableAll, isAudioReady, hasAudioFailed),
-                next.button(disableAll, !hasQueue, hasAudioFailed),
+                playpause.button(isPaused, isLive, disableAll, isAudioReady, this.displayFailAudioMessage),
+                next.button(disableAll, !hasQueue, this.displayFailAudioMessage),
                 stop.button(!hasQueue)
             );
         this.pushUpdate();
@@ -72,6 +79,8 @@ export class MusicDisplayer {
     }
 
     updateEmbed(trackInfo: TrackInfo, channelName: string | null) {
+        this.displayFailAudioMessage = trackInfo.audioFailed === true;
+
         this.embed = new DiscordJs.EmbedBuilder()
             .setAuthor(trackInfo.author)
             .setColor(trackInfo.color)
@@ -101,3 +110,11 @@ export class MusicDisplayer {
         }
     }
 }
+
+const errorEmbed = new DiscordJs.EmbedBuilder()
+    .setColor(botPersonality.errorColor as DiscordJs.ColorResolvable)
+    .setAuthor({
+        iconURL: "https://cdn.discordapp.com/attachments/329613279204999170/970413892792623204/Error_icon.png",
+        name: Lang.get("MP_GUI_audioFetchFailed").substring(0, 256)
+    })
+    .setDescription(Lang.get("MP_GUI_audioFetchFailedAutonext").substring(0, 256));

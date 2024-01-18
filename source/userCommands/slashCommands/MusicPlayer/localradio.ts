@@ -34,7 +34,7 @@ export const localradio: SlashCommandType = {
         const track = new Track(interaction.id, query, radioData.url, TrackType.LocalRadio, radioData.volume ?? 0.15);
 
         if (subscription === null) Subscription.create(interaction, track);
-        else subscription.playTrackNow(track);
+        else subscription.tracklist.add(track);;
 
         Messages.stopThinking(thinkingMessage);
     }

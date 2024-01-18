@@ -10,12 +10,18 @@ const identifier = 'PotatOSMusicDisplayerNext';
 
 export const next: CallableButtonCommandType =
 {
-    button: (disable:boolean, last:boolean) => {
+    button: (disable:boolean, last:boolean, hasAudioFailed:boolean) => {
         return new DiscordJs.ButtonBuilder()
         .setCustomId(identifier)
-        .setLabel(last?Lang.get("MP_Button_lastLabel"):Lang.get("MP_Button_nextLabel"))
+        .setLabel( hasAudioFailed
+            ? (last?Lang.get("MP_Button_autoLastLabel"):Lang.get("MP_Button_autoNextLabel"))
+            : (last?Lang.get("MP_Button_lastLabel"):Lang.get("MP_Button_nextLabel"))
+        )
         .setStyle(last?DiscordJs.ButtonStyle.Danger:DiscordJs.ButtonStyle.Primary)
-        .setEmoji(last?Lang.get("MP_Button_lastEmoji"):Lang.get("MP_Button_nextEmoji"))
+        .setEmoji( hasAudioFailed
+            ? (last?Lang.get("MP_Button_autoLastEmoji"):Lang.get("MP_Button_autoNextEmoji"))
+            : (last?Lang.get("MP_Button_lastEmoji"):Lang.get("MP_Button_nextEmoji"))
+        )
         .setDisabled(disable)
         ;
     },

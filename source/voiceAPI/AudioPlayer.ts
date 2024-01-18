@@ -76,12 +76,9 @@ export class AudioPlayer extends EventEmitter {
     private onStateChange(oldState: DiscordJsVoice.AudioPlayerState, newState: DiscordJsVoice.AudioPlayerState) {
         switch (getStatusFromStates(oldState, newState, this.isPaused)) {
             case Status.Idle:
-                console.log(`IDLE : ${this.playedEnough}: ${this.minimalDurationTimer}`);
                 if (this.playedEnough === true || !this.minimalDurationTimer) {
-                    console.log('NEXT played enough')
                     this.emit(AudioPlayerEvent.Next);
                 } else if (this.playedEnoughCount > 0) {
-                    console.log(`playedEnough : ${this.playedEnough}`)
                     this.clearMinimalDurationTimeout();
                     this.playedEnough = false;
                     this.playedEnoughCount--;
@@ -90,16 +87,14 @@ export class AudioPlayer extends EventEmitter {
                 break;
             case Status.Playing:
                 if ((this.playedEnough === false) && (this.playedEnoughCount === -1)) {
-                    this.playedEnoughCount = 5;
+                    this.playedEnoughCount = 3;
                 }
-                console.log(`Playing : ${this.playedEnoughCount}`)
 
                 // Stream is consider succesful if it played 1000 ms withtout idling
                 this.minimalDurationTimer = setTimeout(() => {
                     this.playedEnough = true;
                     this.clearMinimalDurationTimeout(true);
                 }, 100);
-
 
                 break;
             default: // ignore

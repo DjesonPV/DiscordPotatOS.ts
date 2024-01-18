@@ -43,6 +43,7 @@ export class Subscription {
     tracklist: Tracklist;
     musicDisplayer: MusicDisplayer;
     channelName: string = '...';
+    private autonextTimeout: NodeJS.Timeout | undefined;
 
     private constructor(interaction: DiscordJs.ChatInputCommandInteraction, firstTrack: Track) {
 
@@ -63,9 +64,6 @@ export class Subscription {
         this.musicDisplayer = new MusicDisplayer(guildName, this.channelName, firstTrack.data, interaction.channel)
 
         this.voiceConnection.subscribe(this.audioPlayer.subscription);
-
-        //--------------
-        // ASYNC LIAISON
 
         // - - -
         // Audio Player
@@ -119,19 +117,18 @@ export class Subscription {
         // Voice Connection
 
         this.voiceConnection.once(VoiceConnectionState.Destroyed, () => { this.unsubscribe() });
-
+        
         this.voiceConnection.on(VoiceConnectionState.Moved, async () => {
             this.channelName = await this.voiceConnection.getChannelName();
             this.musicDisplayerFullUpdate();
         })
-
+        
         this.voiceConnection.once(VoiceConnectionState.Ready, () => {
             this.play(true);
         })
 
-        // ASYNC LIAISON
-        //--------------
-
+        // - - -
+        
         Subscription.guildSubscriptions.set(guildId, this);
     }
 
@@ -140,7 +137,38 @@ export class Subscription {
         this.next();
     }
 
+    private play(isNew:boolean = true, isAudioPlayerRetry: boolean = false) {
+        this.audioPlayer.unpause(isNew, isAudioPlayerRetry);
+
+        // - - -
+        // Current Track
+
+        if (this.tracklist.now.isDataReady) {
+            this.musicDisplayerFullUpdate();
+        } else {
+            this.tracklist.now.once(TrackStatus.DataReady, () => {
+                this.musicDisplayer.updateEmbed(this.tracklist.now.data, this.channelName);
+            });
+        }
+
+        if (isNew) {
+            this.tracklist.now.once(TrackStatus.AudioReady, (audio: DiscordJsVoice.AudioResource<any>, audioplayerRetry:boolean) => {
+                audio.volume?.setVolume(this.tracklist.now.volume ?? 0.3);
+                this.audioPlayer.play(audio, audioplayerRetry);
+                this.updateMusicDisplayerButton();
+            });
+    
+            this.tracklist.now.once(TrackStatus.AudioFailed, () => {
+                this.autonextTimeout = setTimeout(()=> {this.next();}, 10000);
+                this.musicDisplayerFullUpdate();
+            });            
+        }
+
+        // - - -
+    }
+
     next() {
+        this.clearAutonextTimeout();
         this.tracklist.next();
     }
 
@@ -164,17 +192,17 @@ export class Subscription {
         this.play(true);
     }
 
-    updateMusicDisplayerButton(hasAudioFailed: boolean = false) {
+    updateMusicDisplayerButton() {
         const isLive = this.tracklist.now.isLive;
         const isPaused = this.audioPlayer.paused;
         const hasQueue = this.tracklist.hasQueue;
         const isReady = this.tracklist.now.isAudioReady;
-        this.musicDisplayer.updateButtons(isLive, isPaused, hasQueue, undefined, isReady, hasAudioFailed);
+        this.musicDisplayer.updateButtons(isLive, isPaused, hasQueue, undefined, isReady);
     }
 
-    musicDisplayerFullUpdate(hasAudioFailed:boolean = false) {
-        this.updateMusicDisplayerButton(hasAudioFailed);
+    musicDisplayerFullUpdate() {
         this.musicDisplayer.updateEmbed(this.tracklist.now.data, this.channelName);
+        this.updateMusicDisplayerButton();
         this.musicDisplayer.updatePlaylist(this.tracklist);
     }
 
@@ -194,28 +222,10 @@ export class Subscription {
         Subscription.guildSubscriptions.delete(guildId);
     }
 
-    private play(isNew:boolean = true, isAudioPlayerRetry: boolean = false) {
-        this.audioPlayer.unpause(isNew, isAudioPlayerRetry);
-        
-        if (this.tracklist.now.isDataReady) {
-            this.musicDisplayerFullUpdate();
-        } else {
-            this.tracklist.now.once(TrackStatus.DataReady, () => {
-                this.musicDisplayer.updateEmbed(this.tracklist.now.data, this.channelName);
-            });
-        }
-
-        if (isNew) {
-            this.tracklist.now.once(TrackStatus.AudioReady, (audio: DiscordJsVoice.AudioResource<any>, audioplayerRetry:boolean) => {
-                audio.volume?.setVolume(this.tracklist.now.volume ?? 0.3);
-                this.audioPlayer.play(audio, audioplayerRetry);
-                this.updateMusicDisplayerButton();
-            });
-    
-    
-            this.tracklist.now.once(TrackStatus.AudioFailed, () => {
-                this.musicDisplayerFullUpdate(true);
-            });            
+    private clearAutonextTimeout() {
+        if (this.autonextTimeout) {
+            clearTimeout(this.autonextTimeout);
+            this.autonextTimeout = undefined;
         }
     }
 }

@@ -127,8 +127,8 @@
     "MP_Placeholder_command$2": "/${command} ${query}",
     "MP_Placeholder_loading": "Chargement . . .",
     "MP_Placeholder_searching$1": "${botName} cherche les infos à afficher",
-    "MP_GUI_audioFetchFailed": "\n\n```diff\n- Impossible de jouer ce média, vérifie la source ou réessaie\n```",
-
+    "MP_GUI_audioFetchFailed": "Impossible de jouer ce média, vérifie la source ou réessaie",
+    "MP_GUI_audioFetchFailedAutonext" : "> Autoskip dans 10 secondes",
 
     "MP_Button_playLabel": "Play",
     "MP_Button_pauseLabel": "Pause",
@@ -147,9 +147,9 @@
     "MP_Button_loadEmoji":"📶",
     "MP_Button_retryEmoji": "🔄",
     "MP_Button_nextEmoji": "⏭",
-    "MP_Button_autoNextEmoji" : "➡",
+    "MP_Button_autoNextEmoji" : "↪",
     "MP_Button_lastEmoji": "◻",
-    "MP_Button_autoLastEmoji": "◻",
+    "MP_Button_autoLastEmoji": "🔳",
     "MP_Button_displayLabel$1": "${botName} Audio Player",
     "MP_Button_displayEmoji": "🎧",
     "MP_Button_stopLabel": "Stop",

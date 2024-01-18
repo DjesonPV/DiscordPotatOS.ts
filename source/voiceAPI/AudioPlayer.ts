@@ -17,8 +17,8 @@ export class AudioPlayer extends EventEmitter {
     private isPaused = false; // for "Paused" Livestream
 
     private playedEnough = false;
-    private playedEnoughCount = 1;
-    private successfulStreamVerificationNumber: NodeJS.Timeout | undefined;
+    private playedEnoughCount = -1;
+    private minimalDurationTimer: NodeJS.Timeout | undefined;
 
     constructor() {
         super();
@@ -32,8 +32,11 @@ export class AudioPlayer extends EventEmitter {
 
     }
 
-    play(audioSong: DiscordJsVoice.AudioResource<any>)//<<< AudioTrack >>>
+    play(audioSong: DiscordJsVoice.AudioResource<any>, retry:boolean = false)//<<< AudioTrack >>>
     {
+        this.clearMinimalDurationTimeout();
+        this.playedEnough = false;
+        if (!retry) this.playedEnoughCount = -1;
         this.audioPlayer.play(audioSong);
         this.isPaused = false;
         this.emit('unmute');
@@ -49,9 +52,10 @@ export class AudioPlayer extends EventEmitter {
         if (paused) this.emit(AudioPlayerEvent.Mute);
     }
 
-    unpause(isLive: boolean = false) {
-        if (isLive) {
-            this.emit(AudioPlayerEvent.PleasePlay);
+    unpause(newStream: boolean = false, isAudioPlayRetry: boolean = false) {
+        this.clearMinimalDurationTimeout();
+        if (newStream) {
+            this.emit(AudioPlayerEvent.PleasePlay, isAudioPlayRetry);
             return;
         }
 
@@ -72,25 +76,25 @@ export class AudioPlayer extends EventEmitter {
     private onStateChange(oldState: DiscordJsVoice.AudioPlayerState, newState: DiscordJsVoice.AudioPlayerState) {
         switch (getStatusFromStates(oldState, newState, this.isPaused)) {
             case Status.Idle:
-                if (this.playedEnough === true) {
+                if (this.playedEnough === true || !this.minimalDurationTimer) {
                     this.emit(AudioPlayerEvent.Next);
                 } else if (this.playedEnoughCount > 0) {
-                    clearTimeout(this.successfulStreamVerificationNumber);
+                    this.clearMinimalDurationTimeout();
                     this.playedEnough = false;
                     this.playedEnoughCount--;
                     this.emit(AudioPlayerEvent.Retry);
                 } else this.emit(AudioPlayerEvent.Failed);
                 break;
             case Status.Playing:
-                if (this.playedEnough === false) {
-                    this.playedEnoughCount = 30;
+                if ((this.playedEnough === false) && (this.playedEnoughCount === -1)) {
+                    this.playedEnoughCount = 3;
                 }
 
-                // Will have playedEnough after 100 ms withtout idling
-                this.successfulStreamVerificationNumber = setTimeout(() => {
+                // Stream is consider succesful if it played 1000 ms withtout idling
+                this.minimalDurationTimer = setTimeout(() => {
                     this.playedEnough = true;
+                    this.clearMinimalDurationTimeout(true);
                 }, 100);
-
 
                 break;
             default: // ignore
@@ -101,6 +105,12 @@ export class AudioPlayer extends EventEmitter {
         this.audioPlayer.stop(false);
     }
 
+    private clearMinimalDurationTimeout(calledBySetTimeout:boolean = false) {
+        if (this.minimalDurationTimer === undefined) return;
+        if (!calledBySetTimeout) clearTimeout(this.minimalDurationTimer);
+        this.minimalDurationTimer = undefined;
+    }
+    
 }
 
 enum Status {

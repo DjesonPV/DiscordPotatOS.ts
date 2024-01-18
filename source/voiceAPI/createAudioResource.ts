@@ -8,53 +8,67 @@ import youtubeDl from 'youtube-dl-exec';
 import { YouTubeLiveStream } from 'ytls';
 import * as ChildProcess from 'child_process';
 
-export function createAudioTrackResource(url: string): Promise<DiscordJsVoice.AudioResource<null>> {
-    return new Promise(async function (resolve) {
+export async function createAudioTrackResource(url: string) {
+     try {
         const fileURL = await fetchFileURL(url);
 
-        if (fileURL.startsWith('https://manifest.googlevideo.com/api/manifest/hls_playlist/'))
-            resolve(await probeAndCreate(new YouTubeLiveStream(() => { return fileURL; })));
+        const audioResource = fileURL.startsWith('https://manifest.googlevideo.com/api/manifest/hls_playlist/')
+            ? fetchYoutubeLivestreamReadable(fileURL)
+            : await useFFMPEG(url, fileURL)
+        ;
+        return probeAndCreate(audioResource);
+    } catch (err) {
+        throw Error(`• createAudioTrackResource\n${err}`);
+    } 
+}
 
-        const process = ChildProcess.spawn('ffmpeg', buildFFmpegArgs(url, fileURL), { windowsHide: true, shell: false });
+function fetchYoutubeLivestreamReadable(liveURL: string) {
+    return new YouTubeLiveStream(() => { return liveURL; })
+}
 
-        process.once('spawn', async () => { resolve(await probeAndCreate(process.stdout)); });
+// use tricky promise because of child process and streamed output 
+function useFFMPEG(queryURL: string, fileURL: string): Promise<internal.Readable> {
+    return new Promise((resolve, reject) => {
+        const process = ChildProcess.spawn('ffmpeg', buildFFmpegArgs(queryURL, fileURL), { windowsHide: true, shell: false });
+        process.once('spawn', async () => { resolve(process.stdout); });
+        process.once('error', err => {reject(err);});
     });
 }
 
-export async function createAudioFileResource(fileLocation: string) {
-    return await probeAndCreate(fs.createReadStream(fileLocation));
+export function createAudioFileResource(fileLocation: string) {
+    return probeAndCreate(fs.createReadStream(fileLocation));
 }
 
 async function probeAndCreate(readableStream: internal.Readable) {
-    const probe = await DiscordJsVoice.demuxProbe(readableStream)
-
-    const audioResource = DiscordJsVoice.createAudioResource(
-        probe.stream,
-        {
+    try {
+        const probe = await DiscordJsVoice.demuxProbe(readableStream);
+        return DiscordJsVoice.createAudioResource( probe.stream, {
             inputType: probe.type,
             inlineVolume: true,
-        }
-    );
-
-    return audioResource;
+        });
+    } catch (error) {
+        throw Error(`• probeAndCreate\n${error}`);
+    }
 }
 
 async function fetchFileURL(query: string) {
     const radio = RadioGarden.getIdFromRadioURL(query);
     if (radio !== null) return RadioGarden.getRadioFluxURL(radio);
 
-    let ytdlURL = (await youtubeDl.exec(
-        query,
-        {
+    try {
+        const ytdlURL = (await youtubeDl.exec(query, {
             format: 'bestaudio.1/bestaudio*.2/best.2',
             print: 'urls',
             simulate: true,
-        } as any
-    ))?.stdout;
+        } as any ).then(out => out)) // because eh
+        ?.stdout;
 
-    if (ytdlURL === undefined) throw new Error('YTDLP returned no URL');
+        if (ytdlURL == undefined) throw new Error(`YTDLP return no URL`);
 
-    return ytdlURL;
+        return `${ytdlURL}`;
+    } catch (error) {
+        throw new Error(`• fetchFileURL youtubeDL.exec\n • date: ${Date.now()}\n • \n • query: ${query}\n • error: ${error}\n`);
+    }
 }
 
 function buildFFmpegArgs(queryURL: string, fileURL: string) {
@@ -70,11 +84,13 @@ function buildFFmpegArgs(queryURL: string, fileURL: string) {
     ] : []).concat([
         '-i', fileURL,
         '-analyzeduration', '0',
+        '-map', 'a',
         '-loglevel', '0',
         '-ar', '48000',
         '-ac', '2',
         '-f', 'opus',
-        '-acodec', "libopus",
+        //'-codec:a', "libopus",
+        '-vn', '-sn', '-dn',
         'pipe:1'
     ]);
 }

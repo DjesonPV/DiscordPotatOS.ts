@@ -1,7 +1,7 @@
 import EventEmitter from "node:events";
 import * as DiscordJs from 'discord.js';
 import * as DiscordJsVoice from '@discordjs/voice';
-import { fetchTrackInfo, TrackInfo, placeholderInfo, fetchFailedInfo } from "./fetchTrackInfo.js";
+import { fetchTrackInfo, TrackInfo, placeholderInfo } from "./fetchTrackInfo.js";
 import { createAudioFileResource, createAudioTrackResource } from "./createAudioResource.js";
 
 export enum TrackType {
@@ -14,7 +14,8 @@ export enum TrackType {
 
 export enum TrackStatus {
     DataReady = "dataReady",
-    AudioReady = "audioReady"
+    AudioReady = "audioReady",
+    AudioFailed = "audioFailed"
 }
 
 export class Track extends EventEmitter {
@@ -26,6 +27,7 @@ export class Track extends EventEmitter {
     isLive: boolean | undefined;
     //volume: number | undefined;
     //type: TrackType;
+    isAudioReady = false;
     failed = false;
 
     constructor(
@@ -40,36 +42,43 @@ export class Track extends EventEmitter {
         this.isLive = type === TrackType.File ? false : (type === TrackType.Track ? undefined : true);
 
         this.data = placeholderInfo(this);
-
-        fetchTrackInfo(this).then((info) => {
-            this.data = info;
-            this.isDataReady = true;
-            this.emit(TrackStatus.DataReady);
-        });
+        this.fetchData();            
     }
 
-    async createAudioResource() {
-        if (this.type === TrackType.File && this.url !== null) {
-            createAudioFileResource(`./resources/mp3sounds/${this.url}`).then(audio => {
-                this.emit(TrackStatus.AudioReady, audio);
-            }, (_) => {
-                this.data = fetchFailedInfo(this.data);
-                this.failed = true;
-                this.emit(TrackStatus.DataReady);
-            });
-        } else if (this.url !== null) {
-            createAudioTrackResource(this.url).then(audio => {
-                this.emit(TrackStatus.AudioReady, audio);
-            }, (_) => {
-                this.data = fetchFailedInfo(this.data);
-                this.failed = true;
-                this.emit(TrackStatus.DataReady);
-            })
-        } else {
-            this.data = fetchFailedInfo(this.data);
-            this.failed = true;
+    async fetchData(){
+        try{
+            this.data = await fetchTrackInfo(this);
+        } catch (error) {
+            console.warn(error);
+        } finally {
+            this.updateFailStatus(this.failed);
+            this.isDataReady = true;
             this.emit(TrackStatus.DataReady);
         }
     }
-}
 
+    async createAudioResource(isNew:boolean = false) {
+        this.updateFailStatus(false);
+        try {
+            if (this.url == null) {
+                throw new Error("Track url is null")
+            } else {
+                const audio = this.type === TrackType.File
+                    ? await createAudioFileResource(`./resources/mp3sounds/${this.url}`)
+                    : await createAudioTrackResource(this.url)
+                this.isAudioReady = true;
+                this.emit(TrackStatus.AudioReady, audio, isNew);         
+            }
+        } catch (error) {
+            console.warn(`• • • Track\n • createAudioResource\n ${error}\n • • •\n`);
+            this.updateFailStatus(true);
+            this.emit(TrackStatus.AudioFailed);
+            // emit audioFailed for handling
+        }
+    }
+
+    private updateFailStatus(hasFail: boolean) {
+        this.failed = hasFail;
+        this.data.audioFailed = hasFail;
+    }
+}

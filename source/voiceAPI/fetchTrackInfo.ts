@@ -13,6 +13,8 @@ import importJSON from "../modules/importJSON.js";
 
 const soundlist: { [key: string]: soundDescription | undefined } = importJSON("./resources/mp3sounds/soundlist.json");
 
+const DESCRIPTION_LIMIT = 2048; // max is 4096 as per https://discord.com/developers/docs/resources/channel#embed-object-embed-author-structure
+
 type soundDescription = {
     file: string,
     title: string,
@@ -40,7 +42,8 @@ export type TrackInfo = {
     thumbnail: string,
     url: string | null,
     playlistDescription: string,
-    playlistTitle: string
+    playlistTitle: string,
+    audioFailed?: boolean
 }
 
 
@@ -55,9 +58,9 @@ export async function fetchTrackInfo (track:Track) {
             return curateInfo(await fetchRadioGardenInfo(track.url, track.query));
         case TrackType.Track:
             if (track.url === null) throw new Error("FetchAudioInfo:\n• no track URL");
-            const [data, isLive] = await fetchAudioTrackInfo(track.url, track.query);
-            track.isLive = isLive;
-            return curateInfo(data);
+            const info = await fetchAudioTrackInfo(track.url, track.query);
+            track.isLive = info.isLive;
+            return curateInfo(info.info);
         case TrackType.Unknown:
         default:
             if (track.url === null) throw new Error("FetchAudioInfo:\n• no URL");
@@ -69,14 +72,14 @@ function curateInfo(info:InfoFormat):TrackInfo{
     return {
         author:{
             name: info.author.name.substring(0,256),
-            iconURL: info.author.iconURL ?? botPersonality.icon,
-            url: info.author.url
+            iconURL: (info.author.iconURL ?? botPersonality.icon).substring(0, 512), // custom limit
+            url: info.author.url?.substring(0, 512) // custom limit like bro you need more than that ?
         },
         color: info.color,
-        description: info.description.substring(0, 4096),
+        description: info.description.substring(0, DESCRIPTION_LIMIT), // full limit is 4096
         title: info.title.substring(0,256),
-        thumbnail: info.thumbnail ?? botPersonality.musicPlayerDefaultThumbnail,
-        url: info.url,
+        thumbnail: (info.thumbnail ?? botPersonality.musicPlayerDefaultThumbnail).substring(0, 512), // custom limit
+        url: info.url?.substring(0, 1024) ?? null, // custom
         playlistDescription: info.playlistDescription.substring(0,100),
         playlistTitle: info.playlistTitle.substring(0,100)
     };
@@ -122,30 +125,6 @@ export function placeholderInfo(track:Track) {
 }
 
 /// - - -
-///> Fetch Audio Failed modifier
-
-export function fetchFailedInfo(info:TrackInfo):TrackInfo {
-
-    const errorMessage = Lang.get("MP_GUI_audioFetchFailed");
-
-    return {
-        author: {
-            name: info.author.name,
-            iconURL: botPersonality.errorIcon,
-            url: info.author.url
-        },
-        color: botPersonality.errorColor as DiscordJs.ColorResolvable,
-        description: info.description.substring(0, 4096-errorMessage.length).concat(errorMessage),
-        title: info.title,
-        thumbnail: info.thumbnail,
-        url: info.url,
-        playlistDescription: info.playlistDescription,
-        playlistTitle: info.playlistTitle
-    }
-}
-
-
-/// - - -
 ///> fecthInfo
 
 function fetchAudioFileInfo(key: string): InfoFormat {    
@@ -167,38 +146,33 @@ function fetchAudioFileInfo(key: string): InfoFormat {
     };
 }
 
-async function fetchAudioTrackInfo(url: string , query: string): Promise<[InfoFormat, boolean]> {   
-    return await Promise.race([
-        promisify(setTimeout)(5000, "").then( () => {return Promise.reject("Timed out")}),
+function timeLimit(fun:Promise<any>, ms:number) {
+    return new Promise (async (resolve, reject) => {
+        const timeout = setTimeout(() => {reject('Timed out')}, 5000)
+        try {
+            const data = await fun;
+            resolve(data);
+        } catch (error) {
+            reject(error)
+        } finally {
+            clearTimeout(timeout);
+        }
+    });
+}
 
-        new Promise(function (resolve, reject) {
-            youtubeDl.exec(
-                url,
-                {
-                    embedMetadata: true,
-                    noEmbedChapters: true,
-                    noEmbedInfoJson: true,
-                    simulate: true,
-                    dumpSingleJson: true,
-                } as any
-            ).then(function (data) {
-                const metadata = JSON.parse(data.stdout);
+async function fetchAudioTrackInfo(url: string , query: string) { 
+    try {     
+        const metadata = await timeLimit(fetchYTDLData(url), 5000) as any;
 
-                if (metadata.extractor === 'generic') reject('FetchAudioInfo:\n• Generic extracor, will use custom Info');
-                else resolve(metadata);
-            })
-        })
-
-    ]).then(async function (metadata: any) {
         const authorName = `${metadata.webpage_url_domain} • ${metadata.channel ?? metadata.artist ?? metadata.uploader ?? metadata.creator}`;
         const authorURL = metadata.uploader_url ?? metadata.channel_url ?? metadata.webpage_url;
         const duration = metadata.duration;
         const iconURL = `https://s2.googleusercontent.com/s2/favicons?domain_url=${metadata.webpage_url_domain}&sz=48`;
-        const isLive = metadata.is_live;
+        const isLive = `${metadata.is_live}`== "true";
         const title = metadata.fulltitle || metadata.title;
         const thumbnail = metadata.thumbnail ?? "";//LANG.musicdisplayerDefaultThumbnail;
         const uploadDate = metadata.upload_date;
-        const url = metadata.webpage_url;
+        const weburl = metadata.webpage_url;
         const viewCount = metadata.view_count;
 
         const info: InfoFormat = {
@@ -211,22 +185,45 @@ async function fetchAudioTrackInfo(url: string , query: string): Promise<[InfoFo
             description: `${isLive ? `🔴 LIVE` : durationToString(duration)} • ${viewsToString(viewCount)} • ${YYYYMMDDToString(uploadDate)}`,
             title: title,
             thumbnail: thumbnail,
-            url: url,
+            url: weburl,
 
             playlistDescription: `${authorName} • ${isLive ? `⬤ LIVE` : durationToString(duration)} • ${viewsToString(viewCount)} • ${YYYYMMDDToString(uploadDate)}`,
             playlistTitle: title,
         }
 
-        return [info, isLive];
-    },
-        function (reason) {
-            return [failedYoutubeInfo(url, query), true];
+        return {info:info, isLive: isLive};
+
+    } catch (error) {
+        console.warn(`• • • Music Player\n • fetchAudioTrackInfo\n • error: ${error}\n• • •\n`);
+        return {
+            info: failedYoutubeInfo(url, query),
+            isLive : true
         }
-    )
+    }
 }
 
-async function fetchRadioGardenInfo(url: string, query: string): Promise<InfoFormat> {
-    return await RadioGarden.getRadioData(url).then(data => {
+async function fetchYTDLData(url:string) {
+    const data = await youtubeDl.exec(
+        url,
+        {
+            embedMetadata: true,
+            noEmbedChapters: true,
+            noEmbedInfoJson: true,
+            simulate: true,
+            dumpSingleJson: true,
+        } as any
+    ).then(out => out); // because eh
+
+    const metadata = JSON.parse(data.stdout);
+    if (metadata.extracor === 'generic') throw new Error("Generic extracor, will use custom Info");
+    return metadata;
+}
+
+async function fetchRadioGardenInfo(url: string, query: string) {
+    
+    try  {
+        const data  = await RadioGarden.getRadioData(url);
+
         return {
             author: {
                 name: "Radio Garden",
@@ -240,10 +237,11 @@ async function fetchRadioGardenInfo(url: string, query: string): Promise<InfoFor
             url: data.website,
             playlistDescription: `Radio Garden • ${data.place.title}, ${data.country.title}`,
             playlistTitle: `🟢 ${data.title}`
-        };
-    }, () => {
+        } as InfoFormat;
+    } catch (error) {
+        console.warn(`• • • RadioGarden\n • date: ${Date.now()}\n • url: ${url}\n • query: ${query} \n • error: ${error}\n• • •\n`);
         return failedRadioGardenInfo(url, query);
-    });
+    };
 }
 
 function fetchLocalRadioInfo(key: string): InfoFormat {
@@ -285,8 +283,8 @@ function failedRadioGardenInfo(url: string, query: string): InfoFormat {
     };
 }
 
-function failedYoutubeInfo(url: string, query: string|null): InfoFormat {
-    if (query == null) return failedYTDLInfo(url);
+function failedYoutubeInfo(url: string, query: string): InfoFormat {
+    if (query === url) return failedYTDLInfo(url);
     return {
         author: {
             name: `YouTube`,
@@ -304,9 +302,9 @@ function failedYoutubeInfo(url: string, query: string|null): InfoFormat {
 }
 
 function failedYTDLInfo(url: string): InfoFormat {
-    /** @type {string} */ const uri = url.split('/').filter(Boolean); //Split an url and remove empty strings
-	/** @type {string} */ const source = uri[1];
-	/** @type {string} */ const file = uri[uri.length - 1];
+    const uri = url.split('/').filter(Boolean); //Split an url and remove empty strings
+	const source = uri[1];
+	const file = uri[uri.length - 1];
 	const favicon = `https://s2.googleusercontent.com/s2/favicons?domain_url=${uri}&sz=48`;
 
 	return {
@@ -331,30 +329,22 @@ function failedYTDLInfo(url: string): InfoFormat {
 /// - - -
 /// Color
 
-async function getColorFromSiteUrl(url: string): Promise<DiscordJs.ColorResolvable> {
-    return new Promise((resolve, reject) => {
+async function getColorFromSiteUrl(url: string) {
+    const defaultColor = botPersonality.color as DiscordJs.ColorResolvable;
+    try {
         const cleanURL = url.match(/(?:http|https):\/\/(?:[^\/])+\//)?.[0];
-    
-        const defaultColor = botPersonality.color as DiscordJs.ColorResolvable;
-
-        if (cleanURL === undefined){
-            resolve(defaultColor);
-            return;
-        } 
         
-        const timeout = setTimeout(()=> {
-            resolve(defaultColor);
-            return;
-        }, 500);
-
-        favcolor.fromSiteFavicon(cleanURL).then(color => {
-            clearTimeout(timeout);
-            resolve(color.toHex()  as DiscordJs.ColorResolvable);
-        }, (_) => {
-            clearTimeout(timeout);
-            resolve(defaultColor);
-        });
-    });
+        if (cleanURL === undefined) throw new Error("Clean URL not defined");
+        
+        
+        const color = await (timeLimit(favcolor.fromSiteFavicon(cleanURL), 500) as Promise<{r: number; g: number; b: number; toHex: () => string;}>);
+        const hexColor = color.toHex()  as DiscordJs.ColorResolvable;
+        return hexColor;
+        
+    } catch (error) {
+        console.warn(`• • • GetColorFromSiteURL\n • url: ${url}\n • error: ${error}\n• • •\n`);
+        return defaultColor;
+    }
 }
 
 /// - - -
@@ -427,7 +417,7 @@ function YYYYMMDDToString(yyyymmdd: string) {
 
     const parsedYear = year.replace(/^0+/, '');
 
-    const monthChoice = parseInt(month) - 1;
+    const monthChoice = parseInt(month);
     const parsedMonth = Lang.get(`MP_GUI_shortMonth${monthChoice}`);
 
     const parsedDay = day.replace(/^0+/, '');

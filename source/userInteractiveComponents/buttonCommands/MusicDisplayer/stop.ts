@@ -19,7 +19,7 @@ export const stop: CallableButtonCommandType =
         return new DiscordJs.ButtonBuilder()
         .setCustomId(identifier)
         .setLabel(Lang.get("MP_Button_stopLabel"))
-        .setStyle(DiscordJs.ButtonStyle.Danger)
+        .setStyle(disable?DiscordJs.ButtonStyle.Secondary:DiscordJs.ButtonStyle.Danger)
         .setEmoji(Lang.get("MP_Button_stopEmoji"))
         .setDisabled(disable)
         ;

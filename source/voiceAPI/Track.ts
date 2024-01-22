@@ -77,7 +77,7 @@ export class Track extends EventEmitter {
         }
     }
 
-    private updateFailStatus(hasFail: boolean) {
+    updateFailStatus(hasFail: boolean) {
         this.failed = hasFail;
         this.data.audioFailed = hasFail;
     }

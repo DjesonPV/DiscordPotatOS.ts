@@ -1,7 +1,6 @@
 import * as DiscordJs from 'discord.js';
 import * as DiscordJsVoice from '@discordjs/voice';
 import { EventEmitter } from 'node:events';
-import { promisify } from 'node:util';
 
 export enum VoiceConnectionState {
     Destroyed = "destroyed",
@@ -14,109 +13,103 @@ export class VoiceConnection extends EventEmitter {
     private guildChannels;
     private readyLock = false;
 
-    constructor(interaction: DiscordJs.ChatInputCommandInteraction) {
+    constructor(interaction: DiscordJs.ChatInputCommandInteraction, audioPlayer: DiscordJsVoice.AudioPlayer) {
         super();
         const member = (interaction.member as DiscordJs.GuildMember);
         const guild = (interaction.guild as DiscordJs.Guild);
 
-        if (member.voice.channel === null) throw "You must be connected in a VoiceChannel";
+        if (member.voice.channel === null) throw new Error("You must be connected in a VoiceChannel");
 
         const channelID = member.voice.channel.id;
         const guildID = member.guild.id;
         this.guildChannels = member.guild.channels;
 
-        this.voiceConnection = DiscordJsVoice.joinVoiceChannel(
-            {
-                channelId: channelID,
-                guildId: guildID,
-                adapterCreator: guild.voiceAdapterCreator,
-                selfDeaf: false,
-                selfMute: true,
-            });
+        this.voiceConnection = DiscordJsVoice.joinVoiceChannel({
+            channelId: channelID,
+            guildId: guildID,
+            adapterCreator: guild.voiceAdapterCreator,
+            selfDeaf: false,
+            selfMute: true,
+        });
 
         this.voiceConnection.on('stateChange', async (oldState, newState) => { await this.onStateChange(oldState, newState) });
-    }
-
-    subscribe(audioPlayer: DiscordJsVoice.AudioPlayer) {
         this.voiceConnection.subscribe(audioPlayer);
     }
 
     selfMute(muted: boolean): boolean {
-        return this.voiceConnection.rejoin(
-            {
-                ...this.voiceConnection.joinConfig,
-                selfMute: muted,
-            }
-        );
+        return this.voiceConnection.rejoin({
+            ...this.voiceConnection.joinConfig,
+            selfMute: muted,
+        });
     }
 
     get joinConfig() {
-        return this.voiceConnection.joinConfig
+        return this.voiceConnection.joinConfig;
     }
 
     destroy(adapterAvailable?: boolean | undefined) {
         this.voiceConnection.destroy(adapterAvailable);
     }
 
-    get destroyed() {
+    get isDestroyed() {
         return this.voiceConnection.state.status === DiscordJsVoice.VoiceConnectionStatus.Destroyed;
     }
 
     private async onStateChange(oldState: DiscordJsVoice.VoiceConnectionState, newState: DiscordJsVoice.VoiceConnectionState) {
-        switch (getStatusFromStates(oldState, newState, this.readyLock)) {
-            case Status.Disconnect:
+        try {
+            switch (getStatusFromStates(oldState, newState, this.readyLock)) {
+            case VoiceConnectionStatus.Disconnect:
                 if (this.voiceConnection.rejoinAttempts < 10) {
-                    promisify(setTimeout)((this.voiceConnection.rejoinAttempts + 1) * 5000).then(() => {
-                        // await before trying to rejoin()
-                        this.voiceConnection.rejoin();
-                    });
-                }
+                    await waitForMs((this.voiceConnection.rejoinAttempts + 1) * 5000);
+                    this.voiceConnection.rejoin();
+                } else {
+                    throw new Error("Too many attempts to rejoin");
+                } break;
+            case VoiceConnectionStatus.LostConnection:
+                await DiscordJsVoice.entersState(this.voiceConnection, DiscordJsVoice.VoiceConnectionStatus.Connecting, 2000);
+                await waitForMs(100); // rompiche API
+                this.emit(VoiceConnectionState.Moved);
                 break;
-            case Status.LostConnection:
-                try // Might have been move in other VoiceChannel by an admin, let's try to reconnect
-                {
-                    await DiscordJsVoice.entersState(this.voiceConnection, DiscordJsVoice.VoiceConnectionStatus.Connecting, 5000);
-                    this.emit(VoiceConnectionState.Moved)
-                }
-                catch (error) // It must have been disconnected from VoiceChannel by an admin, or finished
-                {
-                    this.voiceConnection.destroy();
-                }
-                break;
-            case Status.Destroyed:
+            case VoiceConnectionStatus.Destroyed:
                 this.emit(VoiceConnectionState.Destroyed);
                 break;
-            case Status.Connecting:
+            case VoiceConnectionStatus.Connecting:
                 this.readyLock = true;
-                try // Try to get Ready
-                {
-                    await DiscordJsVoice.entersState(this.voiceConnection, DiscordJsVoice.VoiceConnectionStatus.Ready, 20000).then(() => {
-                        this.readyLock = false;
-                    });
-                }
-                catch (error) // Didn't manage to setup, destroy everything
-                {
-
-                }
+                await DiscordJsVoice.entersState(this.voiceConnection, DiscordJsVoice.VoiceConnectionStatus.Ready, 2000);
+                await waitForMs(100); // rompiche API
+                this.readyLock = false;
                 break;
-            case Status.Ready:
+            case VoiceConnectionStatus.Ready:
                 this.emit(VoiceConnectionState.Ready);
                 break;
             default: // ignore
-        };
+            }
+        } catch (error) {
+            console.warn(`• • • • VoiceConnection\n • error: ${error}\n• • • •\n`);
+            this.voiceConnection.destroy();
+            // if it doesnt work : so long a voiceConnection
+        }
     }
 
     async getChannelName() {
-        const channelId = this.voiceConnection.joinConfig.channelId;
-        if (channelId === null) return '...';
-        const channel = await this.guildChannels.fetch(channelId);
-        if (channel === null || channel.isVoiceBased() === false) return '...';
-
-        return channel.name ?? '...';
+        let channelName: string | null = null;
+        try {
+            const channelId = this.voiceConnection.joinConfig.channelId;
+            if (channelId !== null) {
+                const channel = await this.guildChannels.fetch(channelId);
+                if (channel !== null && channel.isVoiceBased() === true) {
+                    channelName = channel.name;
+                };
+            }
+        } catch (_) {
+            // muting an error is bad pratice but here OSEF (pour le moment)
+        } finally {
+            return channelName ?? '...';
+        }
     }
 }
 
-enum Status {
+enum VoiceConnectionStatus {
     Disconnect = 0,
     LostConnection = 1,
     Destroyed = 2,
@@ -125,18 +118,25 @@ enum Status {
 }
 
 function getStatusFromStates(oldState: DiscordJsVoice.VoiceConnectionState, newState: DiscordJsVoice.VoiceConnectionState, readyLock: boolean) {
-    if (newState.status === DiscordJsVoice.VoiceConnectionStatus.Disconnected) {
+    switch (newState.status) {
+    case DiscordJsVoice.VoiceConnectionStatus.Disconnected:
         if (newState.reason === DiscordJsVoice.VoiceConnectionDisconnectReason.WebSocketClose && newState.closeCode === 4014)
-            return Status.LostConnection;
-        return Status.Disconnect;
+        return VoiceConnectionStatus.LostConnection;
+        return VoiceConnectionStatus.Disconnect;
+    case DiscordJsVoice.VoiceConnectionStatus.Destroyed:
+        return VoiceConnectionStatus.Destroyed;
+    case DiscordJsVoice.VoiceConnectionStatus.Connecting:
+    case DiscordJsVoice.VoiceConnectionStatus.Ready:
+        return VoiceConnectionStatus.Ready;
+    case DiscordJsVoice.VoiceConnectionStatus.Signalling:
+        if (!readyLock) return VoiceConnectionStatus.Connecting;
+    default: 
+        return null;
     }
+}
 
-    if (newState.status === DiscordJsVoice.VoiceConnectionStatus.Destroyed) return Status.Destroyed;
-
-    if (!readyLock && (newState.status === DiscordJsVoice.VoiceConnectionStatus.Connecting ||
-        newState.status === DiscordJsVoice.VoiceConnectionStatus.Signalling))
-        return Status.Connecting;
-
-    if (newState.status === DiscordJsVoice.VoiceConnectionStatus.Ready)
-        return Status.Ready;
+function waitForMs(ms: number) {
+    return new Promise ((resolve, _) => {
+        const timeout = setTimeout(() => {resolve(true); clearTimeout(timeout)}, ms);
+    });
 }

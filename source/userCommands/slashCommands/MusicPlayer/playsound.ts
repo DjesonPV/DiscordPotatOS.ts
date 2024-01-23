@@ -35,7 +35,7 @@ export const playsound: SlashCommandType = {
         const track = new Track(interaction.id, query, trackData.file, TrackType.File, trackData.volume ?? 0.5);
 
         if (subscription === null) Subscription.create(interaction, track);
-        else subscription.playTrackNow(track);
+        else subscription.playThisTrackNow(track);
 
         Messages.stopThinking(thinkingMessage);
     }

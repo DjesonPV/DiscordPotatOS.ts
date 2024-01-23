@@ -168,7 +168,7 @@ async function fetchAudioTrackInfo(url: string , query: string) {
         const authorURL = metadata.uploader_url ?? metadata.channel_url ?? metadata.webpage_url;
         const duration = metadata.duration;
         const iconURL = `https://s2.googleusercontent.com/s2/favicons?domain_url=${metadata.webpage_url_domain}&sz=48`;
-        const isLive = `${metadata.is_live}`== "true";
+        const isLive = `${metadata.is_live}` != "false";
         const title = metadata.fulltitle || metadata.title;
         const thumbnail = metadata.thumbnail ?? "";//LANG.musicdisplayerDefaultThumbnail;
         const uploadDate = metadata.upload_date;

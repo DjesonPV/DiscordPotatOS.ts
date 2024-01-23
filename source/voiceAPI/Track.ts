@@ -21,12 +21,7 @@ export enum TrackStatus {
 export class Track extends EventEmitter {
     data: TrackInfo;
     isDataReady = false;
-    //id: DiscordJs.Snowflake;
-    //url: string | null;
-    //query: string;
     isLive: boolean | undefined;
-    //volume: number | undefined;
-    //type: TrackType;
     isAudioReady = false;
     failed = false;
 
@@ -73,7 +68,6 @@ export class Track extends EventEmitter {
             console.warn(`• • • Track\n • createAudioResource\n ${error}\n • • •\n`);
             this.updateFailStatus(true);
             this.emit(TrackStatus.AudioFailed);
-            // emit audioFailed for handling
         }
     }
 

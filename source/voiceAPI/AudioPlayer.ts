@@ -42,7 +42,7 @@ export class AudioPlayer extends EventEmitter {
         this.emit('unmute');
     }
 
-    pause(isLive: boolean = false) {
+    pause(isLive: boolean = true) {
         let paused: boolean;
         if (isLive) paused = this.audioPlayer.stop();
         else paused = this.audioPlayer.pause();
@@ -65,7 +65,7 @@ export class AudioPlayer extends EventEmitter {
         if (unpaused) this.emit(AudioPlayerEvent.Unmute);
     }
 
-    get subscription() {
+    get voice() {
         return this.audioPlayer;
     }
 

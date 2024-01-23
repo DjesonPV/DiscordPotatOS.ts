@@ -9,6 +9,10 @@ import { MusicDisplayer } from './MusicDisplayer.js';
 
 export class Subscription {
 
+    // Each Subscription is mapped to its Discord Guild as one client can only be connected to one Discord voiceChannel
+    // To get or create this object we can only use these function get and create called through the class and not as new
+    // that way we can keep track of all alive Subscriptions
+
     private static guildSubscriptions: Map<DiscordJs.Snowflake, Subscription> = new Map();
 
     static get(guildId: DiscordJs.Snowflake | null) {
@@ -16,7 +20,6 @@ export class Subscription {
     }
 
     static create(interaction: DiscordJs.ChatInputCommandInteraction, firstTrack: Track) {
-
         const id = interaction.guild?.id;
         if (id === undefined) throw new Error("ChatInputCommand without a guild id");
 
@@ -25,24 +28,18 @@ export class Subscription {
         const member = interaction.member;
         if (member == null) throw new Error("ChatInputCommand without a member")
 
-        if (subscription !== null && subscription.isMemberConnected(member as DiscordJs.GuildMember)) {
-            // member connected in the same voiceChannel and there already exist a subscription
-            return { subscription: subscription, isNew: false };
-
-        } else if ((subscription === null) && ((member as DiscordJs.GuildMember).voice?.channel?.id !== undefined)) {
-            // member is connected to a voiceChannel but there is no subscription
-            return { subscription: new Subscription(interaction, firstTrack), isNew: true };
-
-        } else {
-            return { subscription: null, isNew: false };
-        }
+        if ((subscription === null) && ((member as DiscordJs.GuildMember).voice?.channel?.id !== undefined)) {
+            new Subscription(interaction, firstTrack);
+        };
+        // else it either already exist or the conditions are not met to create a Subscription successfully
+        // so we do nothing : whatever called this function should deal with it
     }
 
     voiceConnection: VoiceConnection;
     audioPlayer: AudioPlayer;
     tracklist: Tracklist;
     musicDisplayer: MusicDisplayer;
-    channelName: string = '...';
+    voiceChannelName: string = '...';
     private autonextTimeout: NodeJS.Timeout | undefined;
 
     private constructor(interaction: DiscordJs.ChatInputCommandInteraction, firstTrack: Track) {
@@ -50,25 +47,110 @@ export class Subscription {
         const guildId = interaction.guild?.id;
         if (guildId == undefined) throw new Error("Subscription received an interraction without a guildId");
 
-        this.voiceConnection = new VoiceConnection(interaction);
-        this.audioPlayer = new AudioPlayer();
-        this.tracklist = new Tracklist(firstTrack);
-
-        const guildName = interaction.guild?.name ?? "...";
-
-        let channel = (interaction.client.channels.cache.find(channel => channel.id === this.voiceConnection.joinConfig.channelId));
-        if (channel?.isVoiceBased()) this.channelName = channel.name;
-
+        const voiceChannel = (interaction.client.channels.cache.find(cachedChannel => cachedChannel.id === this.voiceConnection.joinConfig.channelId));
+        if (voiceChannel?.isVoiceBased()) this.voiceChannelName = voiceChannel.name;
+        
         if (interaction.channel === null) throw new Error("Subscription got an interaction without text channel");
+        
+        const guildName = interaction.guild?.name ?? "...";
+        
+        this.tracklist = new Tracklist(firstTrack);
+        this.audioPlayer = new AudioPlayer();
+        this.voiceConnection = new VoiceConnection(interaction, this.audioPlayer.voice);
+        this.musicDisplayer = new MusicDisplayer(guildName, this.voiceChannelName, firstTrack.data, interaction.channel)
+        
+        Subscription.guildSubscriptions.set(guildId, this);
 
-        this.musicDisplayer = new MusicDisplayer(guildName, this.channelName, firstTrack.data, interaction.channel)
+        this.audioPlayerListeners();
+        this.tracklistListeners();
+        this.voiceConnectionListeners();        
+    }
 
-        this.voiceConnection.subscribe(this.audioPlayer.subscription);
+    /// Commands \\\
+    
+    skip() {
+        if (!this.audioPlayer.paused) this.audioPlayer.pause(true);
+        this.next();
+    }
+    
+    next() {
+        this.clearAutonextTimeout();
+        this.tracklist.next();
+    }
 
-        // - - -
-        // Audio Player
+    pause() {
+        this.audioPlayer.pause(this.tracklist.now.isLive);
+    }
+    
+    resume() {
+        const doNeedToReCreateAudioResource = this.tracklist.now.isLive || this.tracklist.now.failed;
+        
+        if (doNeedToReCreateAudioResource) { // show loading
+            this.tracklist.now.failed = false;
+            this.tracklist.now.isAudioReady = false;
+            this.updateMusicDisplayerButton();
+        }
+        
+        this.play(doNeedToReCreateAudioResource);
+    }
+    
+    playThisTrackNow(track: Track) {
+        this.audioPlayer.pause(true);
+        this.tracklist.setNow(track);
+        this.musicDisplayerFullUpdate();
+        this.play(true);
+    }
+    
+    private play(isNew:boolean = true, isAudioPlayerRetry: boolean = false) {
+        this.audioPlayer.unpause(isNew, isAudioPlayerRetry);
+        this.currentTrackListeners(isNew);
+    }
 
-        this.audioPlayer.on(AudioPlayerEvent.Mute, () => {
+    /// MusicDisplayer liaison \\\
+
+    private updateMusicDisplayerButton() {
+        const isLive = this.tracklist.now.isLive;
+        const isPaused = this.audioPlayer.paused;
+        const hasQueue = this.tracklist.hasQueue;
+        const isReady = this.tracklist.now.isAudioReady;
+        this.musicDisplayer.updateButtons(isLive, isPaused, hasQueue, undefined, isReady);
+    }
+
+    private updateMusicDiplayerEmbed() {
+        this.musicDisplayer.updateEmbed(this.tracklist.now.data, this.voiceChannelName);
+    }
+    
+    musicDisplayerFullUpdate() {
+        this.updateMusicDiplayerEmbed();
+        this.updateMusicDisplayerButton();
+        this.musicDisplayer.updatePlaylist(this.tracklist);
+    }
+    
+    /// Tests \\\
+
+    isMemberConnected(member: DiscordJs.GuildMember | DiscordJs.APIInteractionGuildMember | null) {
+        const guildMember: DiscordJs.GuildMember = member as DiscordJs.GuildMember;
+        
+        return (guildMember?.guild?.id === this.voiceConnection.joinConfig.guildId)
+        && (guildMember?.voice?.channel?.id === this.voiceConnection.joinConfig.channelId);
+    }
+    
+    /// Ubsub \\\
+
+    unsubscribe() {
+        const guildId = this.voiceConnection.joinConfig.guildId;
+        this.audioPlayer.destroy();
+        if (!this.voiceConnection.isDestroyed) this.voiceConnection.destroy();
+        this.tracklist.destroy();
+        this.musicDisplayer.delete();
+        Subscription.guildSubscriptions.delete(guildId);
+    }
+    
+    /// LISTENERS \\\
+
+    // audioPlayer \\
+    private audioPlayerListeners() {
+         this.audioPlayer.on(AudioPlayerEvent.Mute, () => {
             this.voiceConnection.selfMute(true);
             this.updateMusicDisplayerButton();
         });
@@ -97,9 +179,10 @@ export class Subscription {
         this.audioPlayer.on(AudioPlayerEvent.Failed, () => {
             this.audioPlayer.emit(AudioPlayerEvent.Next);
         });
-        
-        // - - - 
-        // TrackList
+    }
+
+    // tracklist \\
+    private tracklistListeners() {
         this.tracklist.on(TracklistState.Changed, () => {
             this.musicDisplayer.updatePlaylist(this.tracklist);
             this.updateMusicDisplayerButton();
@@ -112,42 +195,31 @@ export class Subscription {
         this.tracklist.on(TracklistState.Next, () => {
             this.play(true);
         });
-        
-        // - - -
-        // Voice Connection
+    }
 
-        this.voiceConnection.once(VoiceConnectionState.Destroyed, () => { this.unsubscribe() });
-        
-        this.voiceConnection.on(VoiceConnectionState.Moved, async () => {
-            this.channelName = await this.voiceConnection.getChannelName();
-            this.musicDisplayerFullUpdate();
-        })
+    // voiceConnection \\
+    private voiceConnectionListeners() {
+        this.voiceConnection.once(VoiceConnectionState.Destroyed, () => {
+            this.unsubscribe();
+        });
         
         this.voiceConnection.once(VoiceConnectionState.Ready, () => {
             this.play(true);
-        })
-
-        // - - -
+        });
         
-        Subscription.guildSubscriptions.set(guildId, this);
+        this.voiceConnection.on(VoiceConnectionState.Moved, async () => {
+            this.voiceChannelName = await this.voiceConnection.getChannelName();
+            this.musicDisplayerFullUpdate();
+        });
     }
 
-    skip() {
-        if (!this.audioPlayer.paused) this.audioPlayer.pause(true);
-        this.next();
-    }
-
-    private play(isNew:boolean = true, isAudioPlayerRetry: boolean = false) {
-        this.audioPlayer.unpause(isNew, isAudioPlayerRetry);
-
-        // - - -
-        // Current Track
-
+    // current Track (now) \\
+    private currentTrackListeners(isNew: boolean) {
         if (this.tracklist.now.isDataReady) {
             this.musicDisplayerFullUpdate();
         } else {
             this.tracklist.now.once(TrackStatus.DataReady, () => {
-                this.musicDisplayer.updateEmbed(this.tracklist.now.data, this.channelName);
+                this.musicDisplayer.updateEmbed(this.tracklist.now.data, this.voiceChannelName);
             });
         }
 
@@ -163,63 +235,6 @@ export class Subscription {
                 this.musicDisplayerFullUpdate();
             });            
         }
-
-        // - - -
-    }
-
-    next() {
-        this.clearAutonextTimeout();
-        this.tracklist.next();
-    }
-
-    pause() {
-        this.audioPlayer.pause(this.tracklist.now.isLive);
-    }
-
-    resume() {
-        if (this.tracklist.now.isLive || this.tracklist.now.failed) {
-            this.tracklist.now.isAudioReady = false;
-            this.tracklist.now.failed = false;
-            this.updateMusicDisplayerButton();
-        }
-        this.play(this.tracklist.now.isLive || this.tracklist.now.failed);
-    }
-
-    playTrackNow(track: Track) {
-        this.audioPlayer.pause(true);
-        this.tracklist.setNow(track);
-        this.musicDisplayerFullUpdate();
-        this.play(true);
-    }
-
-    updateMusicDisplayerButton() {
-        const isLive = this.tracklist.now.isLive;
-        const isPaused = this.audioPlayer.paused;
-        const hasQueue = this.tracklist.hasQueue;
-        const isReady = this.tracklist.now.isAudioReady;
-        this.musicDisplayer.updateButtons(isLive, isPaused, hasQueue, undefined, isReady);
-    }
-
-    musicDisplayerFullUpdate() {
-        this.musicDisplayer.updateEmbed(this.tracklist.now.data, this.channelName);
-        this.updateMusicDisplayerButton();
-        this.musicDisplayer.updatePlaylist(this.tracklist);
-    }
-
-    isMemberConnected(member: DiscordJs.GuildMember | DiscordJs.APIInteractionGuildMember | null) {
-        const guildMember: DiscordJs.GuildMember = member as DiscordJs.GuildMember;
-
-        return (guildMember?.guild?.id === this.voiceConnection.joinConfig.guildId)
-            && (guildMember?.voice?.channel?.id === this.voiceConnection.joinConfig.channelId);
-    }
-
-    unsubscribe() {
-        const guildId = this.voiceConnection.joinConfig.guildId;
-        this.audioPlayer.destroy();
-        if (!this.voiceConnection.destroyed) this.voiceConnection.destroy();
-        this.tracklist.destroy();
-        this.musicDisplayer.delete();
-        Subscription.guildSubscriptions.delete(guildId);
     }
 
     private clearAutonextTimeout() {

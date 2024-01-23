@@ -169,7 +169,7 @@ export class Subscription {
         });
         
         this.audioPlayer.on(AudioPlayerEvent.Error, () => {
-            this.audioPlayer.emit(AudioPlayerEvent.Next);
+            this.autonext();
         });
 
         this.audioPlayer.on(AudioPlayerEvent.Retry, () => {
@@ -177,7 +177,7 @@ export class Subscription {
         });
 
         this.audioPlayer.on(AudioPlayerEvent.Failed, () => {
-            this.audioPlayer.emit(AudioPlayerEvent.Next);
+            this.autonext();
         });
     }
 
@@ -231,10 +231,15 @@ export class Subscription {
             });
     
             this.tracklist.now.once(TrackStatus.AudioFailed, () => {
-                this.autonextTimeout = setTimeout(()=> {this.next();}, 10000);
-                this.musicDisplayerFullUpdate();
+                this.autonext();
             });            
         }
+    }
+
+    private autonext() {
+        this.tracklist.now.updateFailStatus(true);
+        this.autonextTimeout = setTimeout(()=> {this.next();}, 10000);
+        this.musicDisplayerFullUpdate();
     }
 
     private clearAutonextTimeout() {

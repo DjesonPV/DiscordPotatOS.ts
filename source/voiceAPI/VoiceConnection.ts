@@ -66,7 +66,8 @@ export class VoiceConnection extends EventEmitter {
                     throw new Error("Too many attempts to rejoin");
                 } break;
             case VoiceConnectionStatus.LostConnection:
-                await DiscordJsVoice.entersState(this.voiceConnection, DiscordJsVoice.VoiceConnectionStatus.Connecting, 5000);
+                await DiscordJsVoice.entersState(this.voiceConnection, DiscordJsVoice.VoiceConnectionStatus.Connecting, 2000);
+                await waitForMs(100); // rompiche API
                 this.emit(VoiceConnectionState.Moved);
                 break;
             case VoiceConnectionStatus.Destroyed:
@@ -74,7 +75,8 @@ export class VoiceConnection extends EventEmitter {
                 break;
             case VoiceConnectionStatus.Connecting:
                 this.readyLock = true;
-                await DiscordJsVoice.entersState(this.voiceConnection, DiscordJsVoice.VoiceConnectionStatus.Ready, 20000);
+                await DiscordJsVoice.entersState(this.voiceConnection, DiscordJsVoice.VoiceConnectionStatus.Ready, 2000);
+                await waitForMs(100); // rompiche API
                 this.readyLock = false;
                 break;
             case VoiceConnectionStatus.Ready:

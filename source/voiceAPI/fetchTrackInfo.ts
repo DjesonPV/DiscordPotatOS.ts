@@ -5,7 +5,6 @@ import favcolor from 'favcolor';
 import * as DiscordJs from 'discord.js';
 import {Track, TrackType} from "./Track.js";
 
-import { promisify } from "node:util";
 import Lang from "../Lang.js";
 import botPersonality from "../modules/botPersonality.js";
 import localRadio from "../modules/localRadio.js";
@@ -168,7 +167,7 @@ async function fetchAudioTrackInfo(url: string , query: string) {
         const authorURL = metadata.uploader_url ?? metadata.channel_url ?? metadata.webpage_url;
         const duration = metadata.duration;
         const iconURL = `https://s2.googleusercontent.com/s2/favicons?domain_url=${metadata.webpage_url_domain}&sz=48`;
-        const isLive = `${metadata.is_live}` != "false";
+        const isLive = `${metadata.is_live}` == "true"; // it's true when live and null when not
         const title = metadata.fulltitle || metadata.title;
         const thumbnail = metadata.thumbnail ?? "";//LANG.musicdisplayerDefaultThumbnail;
         const uploadDate = metadata.upload_date;

@@ -46,17 +46,16 @@ export class Subscription {
 
         const guildId = interaction.guild?.id;
         if (guildId == undefined) throw new Error("Subscription received an interraction without a guildId");
-
-        const voiceChannel = (interaction.client.channels.cache.find(cachedChannel => cachedChannel.id === this.voiceConnection.joinConfig.channelId));
-        if (voiceChannel?.isVoiceBased()) this.voiceChannelName = voiceChannel.name;
-        
         if (interaction.channel === null) throw new Error("Subscription got an interaction without text channel");
-        
-        const guildName = interaction.guild?.name ?? "...";
         
         this.tracklist = new Tracklist(firstTrack);
         this.audioPlayer = new AudioPlayer();
         this.voiceConnection = new VoiceConnection(interaction, this.audioPlayer.voice);
+        
+        const guildName = interaction.guild?.name ?? "...";
+        const voiceChannel = (interaction.client.channels.cache.find(cachedChannel => cachedChannel.id === this.voiceConnection.joinConfig.channelId));
+        if (voiceChannel?.isVoiceBased()) this.voiceChannelName = voiceChannel.name;
+        
         this.musicDisplayer = new MusicDisplayer(guildName, this.voiceChannelName, firstTrack.data, interaction.channel)
         
         Subscription.guildSubscriptions.set(guildId, this);

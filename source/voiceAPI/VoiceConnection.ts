@@ -67,7 +67,6 @@ export class VoiceConnection extends EventEmitter {
                 } break;
             case VoiceConnectionStatus.LostConnection:
                 await DiscordJsVoice.entersState(this.voiceConnection, DiscordJsVoice.VoiceConnectionStatus.Connecting, 2000);
-                await waitForMs(100); // rompiche API
                 this.emit(VoiceConnectionState.Moved);
                 break;
             case VoiceConnectionStatus.Destroyed:
@@ -76,7 +75,6 @@ export class VoiceConnection extends EventEmitter {
             case VoiceConnectionStatus.Connecting:
                 this.readyLock = true;
                 await DiscordJsVoice.entersState(this.voiceConnection, DiscordJsVoice.VoiceConnectionStatus.Ready, 2000);
-                await waitForMs(100); // rompiche API
                 this.readyLock = false;
                 break;
             case VoiceConnectionStatus.Ready:
@@ -125,9 +123,9 @@ function getStatusFromStates(oldState: DiscordJsVoice.VoiceConnectionState, newS
         return VoiceConnectionStatus.Disconnect;
     case DiscordJsVoice.VoiceConnectionStatus.Destroyed:
         return VoiceConnectionStatus.Destroyed;
+        case DiscordJsVoice.VoiceConnectionStatus.Ready:
+            return VoiceConnectionStatus.Ready;
     case DiscordJsVoice.VoiceConnectionStatus.Connecting:
-    case DiscordJsVoice.VoiceConnectionStatus.Ready:
-        return VoiceConnectionStatus.Ready;
     case DiscordJsVoice.VoiceConnectionStatus.Signalling:
         if (!readyLock) return VoiceConnectionStatus.Connecting;
     default: 

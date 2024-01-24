@@ -3,14 +3,18 @@
         "name": "Radio Zig Zag",
         "title": "Radio ZIG ZAG - Pays de Romans",
         "description": "La Radio du Grand RoValTain !!!\n102.0 FM - 102.4 FM",
+        "place": "Beaufort-sur-Gervanne",
+        "country": "France",
         "web": "https://www.radiozigzag.com/",
-        "url": "https://ice1.self-radio.com:9500/zigzag-102.4",
+        "url": "https://zig.syndicastream.fr:8443/stream",
         "thumbnail": "https://www.radiozigzag.com/upload/players/5e8c9be47883d0.52483364.jpg"
     },
     "zigzagfc": {
         "name": "Radio Zig Zag FC",
         "title": "Radio ZIG ZAG - Franche Comté",
         "description": "L'essentiel des souvenirs\n Radio Web Locale",
+        "place": "Courvières",
+        "country": "France",
         "web": "https://radiozigzagfc.wixsite.com/radiozigzag-fc",
         "url": "https://radio13.pro-fhi.net/live/RADIO%20ZIG%20ZAG%20FRANCHE%20COMTE",
         "thumbnail": "https://www.radiozigzag.com/upload/players/60e46050338424.62887520.jpg"
@@ -19,14 +23,18 @@
         "name": "Eurobeat FM",
         "title": "EUROBEAT von laut.fm",
         "description": "Get yourself a full load of Eurobeat",
+        "place": "Konstanz",
+        "country": "Germany",
         "web": "https://laut.fm/eurobeat",
         "url": "https://eurobeat.stream.laut.fm/eurobeat",
         "thumbnail": "https://assets.laut.fm/96917e65938d7e6c8bf516008b8e2ddf"
     },
     "hotradio": {
         "name": "Hot Radio",
-        "title": "Hot Radio - Voiron 102.1 FM",
+        "title": "HOT RADIO - Voiron 102.1 FM",
         "description": "LA radio de Voiron",
+        "place": "Voiron",
+        "country": "France",
         "web": "https://hotradio.fr/",
         "url": "http://st8.hotradio.fr/92",
         "thumbnail": "https://hotradio.fr/ext/logo1.png"
@@ -34,7 +42,9 @@
     "lavoiesainte": {
         "name": "La Voie Sainte",
         "title": "Radio la Voie Sainte 88.3 FM",
-        "description":"La Chaine de la Rédemption",
+        "description": "La Chaine de la Rédemption 🙏",
+        "place": "Abidjian",
+        "country": "Côte d'Ivoire",
         "web": "https://radiolavoiesainte.net/",
         "url": "http://stream.zeno.fm/55pri4szxwouv",
         "thumbnail": "https://radiolavoiesainte.net/wp-content/uploads/2019/12/cropped-spash-1.png",

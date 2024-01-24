@@ -253,11 +253,11 @@ function fetchLocalRadioInfo(key: string): InfoFormat {
             iconURL: botPersonality.radioIcon
         },
         color: botPersonality.radioColor as DiscordJs.ColorResolvable,
-        description: radio.description,
+        description: `${radio.description}\n${radio.place}, ${radio.country}`,
         title: radio.title,
         url: radio.url,
         thumbnail: radio.thumbnail ?? botPersonality.musicPlayerDefaultThumbnail,
-        playlistDescription: radio.title,
+        playlistDescription: `${radio.title} • ${radio.place}, ${radio.country}`,
         playlistTitle: `🟢 ${radio.name}`
     };
 }

@@ -11,6 +11,8 @@ type LocalRadioDescription = {
         description: string,
         web: string,
         url: string,
+        place: string,
+        country: string,
         thumbnail: string | undefined
     } | undefined
 }

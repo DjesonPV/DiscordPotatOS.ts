@@ -66,7 +66,7 @@ export const playtrack: SlashCommandType = {
         }
 
         if (url !== undefined) {
-            const track = new Track(interaction.id, query, url, TrackType.Track, 0.15);
+            const track = new Track(interaction.id, query, url, TrackType.Track, 0.2);
             if (subscription === null) Subscription.create(interaction, track);
             else subscription.tracklist.add(track);
         }

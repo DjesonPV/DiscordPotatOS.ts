@@ -12,7 +12,7 @@ const radiolist:{[key:string]:LocalRadioData} = importJSON("./resources/localrad
 export const localradio: SlashCommandType = {
     description: new DiscordJs.SlashCommandBuilder()
     .setName(Lang.get('SC_localRadio_commandName'))
-    .setDescription(Lang.get('SC_localradio_commandDescription$1', [botPersonality.nickname])) // #####
+    .setDescription(Lang.get('SC_localradio_commandDescription$1', [botPersonality.nickname]))
     .addStringOption(option => option
         .setName(Lang.get('SC_localradio_optionName'))
         .setDescription(Lang.get('SC_localradio_optionDescription'))
@@ -31,7 +31,7 @@ export const localradio: SlashCommandType = {
         const radioData = radiolist[query];
 
 
-        const track = new Track(interaction.id, query, radioData.url, TrackType.LocalRadio, radioData.volume ?? 0.15);
+        const track = new Track(interaction.id, query, radioData.url, TrackType.LocalRadio, radioData.volume ?? 0.2);
 
         if (subscription === null) Subscription.create(interaction, track);
         else subscription.tracklist.add(track);;

@@ -171,6 +171,7 @@
     "MP_Playlist_removeLabel": "Retirer de la playlist",
     "MP_Playlist_removeEmoji": "🗑",
     "MP_Playlist_requestRoger": "Reqûete prise en compte !",
+    "MP_Button_volumeLabel":"Volume : ",
 
     "MP_PlaytrackSearchError$1": "Pas de contenu trouver sur YouTube pour {${query}}",
     "MP_SearchError": "La recherche a échoué",

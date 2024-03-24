@@ -105,6 +105,27 @@ export class Subscription {
         this.currentTrackListeners(isNew);
     }
 
+    volumeRise() {
+        if (this.tracklist.now.audio === undefined) return;
+        this.tracklist.now.volume = Math.min(((this.tracklist.now.volume ?? 0.30)+0.10), 1);
+        this.tracklist.now.audio.volume?.setVolume(this.tracklist.now.volume);
+        this.updateMusicDisplayerVolume();
+    }
+
+    volumeFall() {
+        if (this.tracklist.now.audio === undefined) return;
+        this.tracklist.now.volume = Math.max(((this.tracklist.now.volume ?? 0.30)-0.10), 0);
+        this.tracklist.now.audio.volume?.setVolume(this.tracklist.now.volume);
+        this.updateMusicDisplayerVolume();
+    }
+
+    volumeReset() {
+        if (this.tracklist.now.audio === undefined) return;
+        this.tracklist.now.volume = 0.3;
+        this.tracklist.now.audio.volume?.setVolume(this.tracklist.now.volume);
+        this.updateMusicDisplayerVolume();
+    }
+
     /// MusicDisplayer liaison \\\
 
     private updateMusicDisplayerButton() {
@@ -113,10 +134,15 @@ export class Subscription {
         const hasQueue = this.tracklist.hasQueue;
         const isReady = this.tracklist.now.isAudioReady;
         this.musicDisplayer.updateButtons(isLive, isPaused, hasQueue, undefined, isReady);
+        this.updateMusicDisplayerVolume();
     }
 
     private updateMusicDiplayerEmbed() {
         this.musicDisplayer.updateEmbed(this.tracklist.now.data, this.voiceChannelName);
+    }
+
+    private updateMusicDisplayerVolume() {
+        this.musicDisplayer.updateVolume(!this.isAudioPlaying(), this.tracklist.now.volume);
     }
     
     musicDisplayerFullUpdate() {
@@ -224,7 +250,8 @@ export class Subscription {
 
         if (isNew) {
             this.tracklist.now.once(TrackStatus.AudioReady, (audio: DiscordJsVoice.AudioResource<any>, audioplayerRetry:boolean) => {
-                audio.volume?.setVolume(this.tracklist.now.volume ?? 0.3);
+                if (this.tracklist.now.volume === undefined) this.tracklist.now.volume = 0.3;
+                audio.volume?.setVolume(this.tracklist.now.volume);
                 this.audioPlayer.play(audio, audioplayerRetry);
                 this.updateMusicDisplayerButton();
             });
@@ -246,5 +273,9 @@ export class Subscription {
             clearTimeout(this.autonextTimeout);
             this.autonextTimeout = undefined;
         }
+    }
+
+    private isAudioPlaying(){
+        return (this.tracklist.now.isAudioReady && !this.audioPlayer.paused);
     }
 }

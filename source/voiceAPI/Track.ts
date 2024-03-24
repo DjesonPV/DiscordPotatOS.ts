@@ -24,6 +24,7 @@ export class Track extends EventEmitter {
     isLive: boolean | undefined;
     isAudioReady = false;
     failed = false;
+    audio: DiscordJsVoice.AudioResource<null> | undefined;
 
     constructor(
         public id: DiscordJs.Snowflake,
@@ -62,7 +63,8 @@ export class Track extends EventEmitter {
                     ? await createAudioFileResource(`./resources/mp3sounds/${this.url}`)
                     : await createAudioTrackResource(this.url)
                 this.isAudioReady = true;
-                this.emit(TrackStatus.AudioReady, audio, isNew);         
+                this.audio = audio;
+                this.emit(TrackStatus.AudioReady, this.audio, isNew);         
             }
         } catch (error) {
             console.warn(`• • • Track\n • createAudioResource\n ${error}\n • • •\n`);

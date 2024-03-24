@@ -8,7 +8,7 @@ import botPersonality from '../../../modules/botPersonality.js';
 export const stop: SlashCommandType = {
     description: new DiscordJs.SlashCommandBuilder()
     .setName(Lang.get('SC_stop_commandName'))
-    .setDescription(Lang.get('SC_stop_commandDescription$1', [botPersonality.nickname])) //###
+    .setDescription(Lang.get('SC_stop_commandDescription$1', [botPersonality.nickname]))
     ,
     action: async function (interaction) {
         let subscription = Subscription.get(interaction.guildId);

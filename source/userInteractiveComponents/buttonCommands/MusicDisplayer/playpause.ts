@@ -33,7 +33,7 @@ export const playpause: CallableButtonCommandType =
         .setLabel(label)
         .setStyle(
             hasAudioFailed || (ready && paused)
-            ? DiscordJs.ButtonStyle.Success
+            ? DiscordJs.ButtonStyle.Primary
             : DiscordJs.ButtonStyle.Secondary
         )
         .setEmoji(emoji)

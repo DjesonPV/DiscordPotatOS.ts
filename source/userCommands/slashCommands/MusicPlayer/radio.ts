@@ -32,11 +32,11 @@ export const radio: SlashCommandType = {
         if (isItAnURL(query)) {
             if (RadioGarden.getIdFromRadioURL(query) !== null)
             url = query;
-            else Messages.replyAlert(interaction, Lang.get('MP_RadioNonValidLink$1', [query])); //####
+            else Messages.replyAlert(interaction, Lang.get('MP_RadioNonValidLink$1', [query]));
         } else {
             const searchURL = await RadioGarden.searchForRadioUrl(query)
             .catch(_ => {
-                Messages.replyAlert(interaction, Lang.get('MP_RadioSearchError$1', [query])); //#####
+                Messages.replyAlert(interaction, Lang.get('MP_RadioSearchError$1', [query]));
                 return null;
             });
             
@@ -44,7 +44,7 @@ export const radio: SlashCommandType = {
         }
         
         if (url !== undefined) {
-            const track = new Track(interaction.id, query, url, TrackType.Radio, 0.15);
+            const track = new Track(interaction.id, query, url, TrackType.Radio, 0.2);
 
             if (subscription === null) Subscription.create(interaction, track);
             else subscription.tracklist.add(track);

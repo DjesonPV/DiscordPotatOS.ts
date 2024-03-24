@@ -171,6 +171,7 @@
     "MP_Playlist_removeLabel": "Remove from the playlist",
     "MP_Playlist_removeEmoji": "🗑",
     "MP_Playlist_requestRoger": "Roger that.\nYou can now dismiss this message",
+    "MP_Button_volumeLabel":"Volume: ",
 
     "MP_PlaytrackSearchError$1": "No media found on YouTube for {${query}}",
     "MP_SearchError": "Search has failed",

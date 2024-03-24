@@ -7,6 +7,9 @@ import { playpause } from '../userInteractiveComponents/buttonCommands/MusicDisp
 import { next } from '../userInteractiveComponents/buttonCommands/MusicDisplayer/next.js';
 import { stop } from '../userInteractiveComponents/buttonCommands/MusicDisplayer/stop.js';
 import { playlist } from '../userInteractiveComponents/dropdownList/MusicDisplayer/playlist.js';
+import { volumeUp } from '../userInteractiveComponents/buttonCommands/MusicDisplayer/volumeUp.js';
+import { volumeDown } from '../userInteractiveComponents/buttonCommands/MusicDisplayer/volumeDown.js';
+import { volumeShow } from '../userInteractiveComponents/buttonCommands/MusicDisplayer/volumeShow.js';
 import botPersonality from '../modules/botPersonality.js';
 import isStringAnURL from '../modules/isStringAnURL.js';
 import { Tracklist } from './Tracklist.js';
@@ -19,6 +22,7 @@ export class MusicDisplayer {
     private deleted = false;
     private tracklistRow: DiscordJs.ActionRowBuilder<DiscordJs.StringSelectMenuBuilder> | null = null;
     private buttonRow: DiscordJs.ActionRowBuilder<DiscordJs.ButtonBuilder>;// = this.updateButtons(false, true, false, true);
+    private volumeRow: DiscordJs.ActionRowBuilder<DiscordJs.ButtonBuilder>;
     private embed: DiscordJs.EmbedBuilder;
     message: DiscordJs.Message | null = null;
     //private textChannel: DiscordJs.TextBasedChannel;
@@ -37,6 +41,7 @@ export class MusicDisplayer {
     ) {
         this.embed = this.updateEmbed(firstTrackInfo, channelName);
         this.buttonRow = this.updateButtons(true, true, false, true, false);
+        this.volumeRow = this.updateVolume(true);
     }
 
     private async updateMessage() {
@@ -44,7 +49,7 @@ export class MusicDisplayer {
 
         const payload : DiscordJs.BaseMessageOptions = {
             embeds: [this.embed],
-            components : [this.buttonRow]
+            components : [this.buttonRow, this.volumeRow]
         };
         if (this.tracklistRow !== null) payload.components?.unshift(this.tracklistRow);
         if (this.displayFailAudioMessage) payload.embeds?.push(errorEmbed);
@@ -76,6 +81,17 @@ export class MusicDisplayer {
             );
         this.pushUpdate();
         return this.buttonRow;
+    }
+
+    updateVolume(disableAll: boolean = false, volume: number | undefined = undefined) {
+        this.volumeRow = new DiscordJs.ActionRowBuilder<DiscordJs.ButtonBuilder>()
+        .addComponents(
+            volumeShow.button(volume),
+            volumeDown.button(disableAll),
+            volumeUp.button(disableAll)
+        );
+        this.pushUpdate();
+        return this.volumeRow;
     }
 
     updateEmbed(trackInfo: TrackInfo, channelName: string | null) {

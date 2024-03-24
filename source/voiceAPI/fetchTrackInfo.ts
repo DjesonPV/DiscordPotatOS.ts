@@ -161,7 +161,7 @@ function timeLimit(fun:Promise<any>, ms:number) {
 
 async function fetchAudioTrackInfo(url: string , query: string) { 
     try {     
-        const metadata = await timeLimit(fetchYTDLData(url), 5000) as any;
+        const metadata = await timeLimit(fetchYTDLData(url), 10000) as any;
 
         const authorName = `${metadata.webpage_url_domain} • ${metadata.channel ?? metadata.artist ?? metadata.uploader ?? metadata.creator}`;
         const authorURL = metadata.uploader_url ?? metadata.channel_url ?? metadata.webpage_url;

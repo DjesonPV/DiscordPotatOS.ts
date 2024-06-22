@@ -30,7 +30,8 @@ type InfoFormat = {
     thumbnail: string | null,
     url: string | null,
     playlistDescription: string,
-    playlistTitle: string
+    playlistTitle: string,
+    dataFailed?:boolean
 }
 
 export type TrackInfo = {
@@ -42,7 +43,8 @@ export type TrackInfo = {
     url: string | null,
     playlistDescription: string,
     playlistTitle: string,
-    audioFailed?: boolean
+    audioFailed?: boolean,
+    dataFailed?: boolean
 }
 
 
@@ -80,7 +82,8 @@ function curateInfo(info:InfoFormat):TrackInfo{
         thumbnail: (info.thumbnail ?? botPersonality.musicPlayerDefaultThumbnail).substring(0, 512), // custom limit
         url: info.url?.substring(0, 1024) ?? null, // custom
         playlistDescription: info.playlistDescription.substring(0,100),
-        playlistTitle: info.playlistTitle.substring(0,100)
+        playlistTitle: info.playlistTitle.substring(0,100),
+        dataFailed: info.dataFailed ?? false,
     };
 }
 
@@ -163,13 +166,18 @@ async function fetchAudioTrackInfo(url: string , query: string) {
     try {     
         const metadata = await timeLimit(fetchYTDLData(url), 10000) as any;
 
-        const authorName = `${metadata.webpage_url_domain} • ${metadata.channel ?? metadata.artist ?? metadata.uploader ?? metadata.creator}`;
+        const sourceName = `${metadata.webpage_url_domain}`;
+        const creatorName = metadata.channel ?? metadata.artist ?? metadata.uploader ?? metadata.creator ?? undefined;
+
+        if (creatorName == undefined) throw "`• • • Music Player\n • fetchAudioTrackInfo\n • noCreatorName";
+
+        const authorName = `${sourceName} • ${creatorName}`;
         const authorURL = metadata.uploader_url ?? metadata.channel_url ?? metadata.webpage_url;
         const duration = metadata.duration;
         const iconURL = `https://s2.googleusercontent.com/s2/favicons?domain_url=${metadata.webpage_url_domain}&sz=48`;
         const isLive = `${metadata.is_live}` == "true"; // it's true when live and null when not
         const title = metadata.fulltitle || metadata.title;
-        const thumbnail = metadata.thumbnail ?? "";//LANG.musicdisplayerDefaultThumbnail;
+        const thumbnail = metadata.thumbnail ?? undefined;
         const uploadDate = metadata.upload_date;
         const weburl = metadata.webpage_url;
         const viewCount = metadata.view_count;
@@ -279,6 +287,7 @@ function failedRadioGardenInfo(url: string, query: string): InfoFormat {
         // Data used in the MusicDisplayer Playlist SelectMenu
         playlistDescription: `Radio Garden ○ ${query}`,
         playlistTitle: `🟢 /${url.match(/https?:\/\/radio\.garden\/([^&]+)/)?.[1] ?? '. . .'}`,
+        dataFailed: true,
     };
 }
 
@@ -297,6 +306,7 @@ function failedYoutubeInfo(url: string, query: string): InfoFormat {
         thumbnail: botPersonality.musicPlayerDefaultThumbnail,
         playlistDescription: query,
         playlistTitle: `YouTube ○ /${url.match(/https:\/\/www\.youtube\.com\/([^&]+)/)?.[1] ?? ''}`,
+        dataFailed: true,
     };
 }
 
@@ -322,6 +332,7 @@ function failedYTDLInfo(url: string): InfoFormat {
 		// Data used in the MusicDisplayer Playlist SelectMenu
 		playlistDescription: url,
 		playlistTitle: file,
+        dataFailed: true,
 	};
 }
 
@@ -331,7 +342,7 @@ function failedYTDLInfo(url: string): InfoFormat {
 async function getColorFromSiteUrl(url: string) {
     const defaultColor = botPersonality.color as DiscordJs.ColorResolvable;
     try {
-        const cleanURL = url.match(/(?:http|https):\/\/(?:[^\/])+\//)?.[0];
+        const cleanURL = url.match(/https?:\/\/(?:[^\/])+\//)?.[0];
         
         if (cleanURL === undefined) throw new Error("Clean URL not defined");
         
@@ -408,9 +419,9 @@ function viewsToString(viewCount: number) {
 }
 
 function YYYYMMDDToString(yyyymmdd: string) {
-    const matched = yyyymmdd.match(/(\d{4})(\d{2})(\d{2})/);
+    const matched = yyyymmdd?.match(/(\d{4})(\d{2})(\d{2})/) ?? undefined;
 
-    if (matched === null) throw new Error("Incorrect Raw Date Format (YYYYMMDD)");
+    if (matched == undefined) return Lang.get("MP_GUI_noUploadDate");
 
     const [year, month, day] = matched.slice(1, 4);
 

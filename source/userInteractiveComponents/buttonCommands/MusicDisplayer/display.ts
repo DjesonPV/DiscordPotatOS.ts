@@ -19,7 +19,7 @@ export const display: CallableButtonCommandType =
         .setDisabled(disable)
         ;
     },
-    action: function (interaction)
+    action: async function (interaction)
     {
         const guildId = interaction.guildId;
         if (guildId == null) throw new Error("MusicDisplayer Button Display no guildId");
@@ -28,8 +28,9 @@ export const display: CallableButtonCommandType =
         if ((subscription === null) || (interaction.message.id !== subscription.musicDisplayer.message?.id)) {
             Messages.delete(interaction.message);
         } else {
-            subscription.musicDisplayerFullUpdate();
             interaction.deferUpdate();
+            await subscription.tracklist.now.fetchData();
+            subscription.musicDisplayerFullUpdate();
         }
     },
     identifier: identifier

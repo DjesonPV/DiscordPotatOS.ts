@@ -121,6 +121,7 @@
     "MP_GUI_shortMonth11": "Nov",
     "MP_GUI_shortMonth12": "Dec",
     "MP_GUI_dateFormat$3": "${1day} ${2month} ${3year}",
+    "MP_GUI_noUploadDate": "-- --- ----",
     "MP_GIU_soundCalled$1": "Called with command [${key}]",
     "MP_GUI_throughCommand": "Through command",
     "MP_GUI_webLink": "Web link",

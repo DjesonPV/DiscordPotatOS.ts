@@ -43,7 +43,8 @@ export class Track extends EventEmitter {
 
     async fetchData(){
         try{
-            this.data = await fetchTrackInfo(this);
+            let data = await fetchTrackInfo(this);
+            if (data.dataFailed != true) this.data = data;
         } catch (error) {
             console.warn(error);
         } finally {

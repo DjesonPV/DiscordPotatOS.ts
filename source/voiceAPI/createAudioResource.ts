@@ -5,8 +5,9 @@ import * as fs from 'fs';
 import internal from 'stream';
 
 import youtubeDl from 'youtube-dl-exec';
-import { YouTubeLiveStream } from 'ytls';
+
 import * as ChildProcess from 'child_process';
+import YouTubeLiveStream from './YouTubeLiveStream/YouTubeLiveStream.js';
 
 export async function createAudioTrackResource(url: string) {
      try {
@@ -23,7 +24,9 @@ export async function createAudioTrackResource(url: string) {
 }
 
 function fetchYoutubeLivestreamReadable(liveURL: string) {
-    return new YouTubeLiveStream(() => { return liveURL; })
+    if (liveURL.match(/(?:source\/yt_live_broadcast)/) == null)
+    return new YouTubeLiveStream(() => { return liveURL;}, 3, true);
+    return new YouTubeLiveStream(() => { return liveURL;});
 }
 
 // use tricky promise because of child process and streamed output 
@@ -57,7 +60,7 @@ async function fetchFileURL(query: string) {
 
     try {
         const ytdlURL = (await youtubeDl.exec(query, {
-            format: 'bestaudio.1/bestaudio*.2/best.2',
+            format: 'bestaudio/bestaudio*',
             print: 'urls',
             simulate: true,
         } as any ).then(out => out)) // because eh
@@ -73,7 +76,7 @@ async function fetchFileURL(query: string) {
 
 function buildFFmpegArgs(queryURL: string, fileURL: string) {
     // Any http|https url with a query string either t or start in seconds
-    const seekTime = parseInt(queryURL.match(/https?:\/\/.*?\/.*?(?:\?|\&)(?:t|start)=(\d+)s?/)?.[1] ?? '0');
+    const seekTime = parseInt(queryURL.match(/(?:https?:\/\/.*?\/.*?)?(?:\?|\&)(?:t|start)=(\d+)s?/)?.[1] ?? '0');
 
     return [
         '-reconnect', '1',
@@ -84,7 +87,7 @@ function buildFFmpegArgs(queryURL: string, fileURL: string) {
     ] : []).concat([
         '-i', fileURL,
         '-analyzeduration', '0',
-        '-map', 'a',
+        '-map', '0:a',
         '-loglevel', '0',
         '-ar', '48000',
         '-ac', '2',

@@ -47,7 +47,7 @@ export default class Messages {
 
     static async print(
         channel: DiscordJs.TextBasedChannel,
-        messageOptions: DiscordJs.BaseMessageOptions | string,
+        messageOptions: DiscordJs.MessageCreateOptions | string,
         duration: number = 0,
         isAlert: boolean = false
     ) {

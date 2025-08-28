@@ -42,7 +42,6 @@
     "node-schedule": "^2.1.1",
     "opusscript": "^0.0.8",
     "surfyt-api": "^0.2.5",
-    "youtube-dl-exec": "^2.4.0",
-    "ytls": "^1.0.6"
+    "youtube-dl-exec": "^2.4.0"
   }
 }

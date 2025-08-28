@@ -47,20 +47,27 @@ export class MusicDisplayer {
     private async updateMessage() {
         if (this.textChannel === undefined) return;
 
-        const payload : DiscordJs.BaseMessageOptions = {
-            embeds: [this.embed],
-            components : [this.buttonRow, this.volumeRow]
-        };
-        if (this.tracklistRow !== null) payload.components?.unshift(this.tracklistRow);
-        if (this.displayFailAudioMessage) payload.embeds?.push(errorEmbed);
+        let embeds = [this.embed];
+        let components : DiscordJs.ActionRowBuilder<DiscordJs.ButtonBuilder|DiscordJs.StringSelectMenuBuilder>[] = [this.buttonRow, this.volumeRow];
+        if (this.tracklistRow !== null) components?.unshift(this.tracklistRow);
+        if (this.displayFailAudioMessage) embeds?.push(errorEmbed);
         
         if (this.message == null) {
             if (this.messageLock == false) {
+                const payload: DiscordJs.MessageCreateOptions = {
+                    embeds: embeds,
+                    components: components,
+                    flags:DiscordJs.MessageFlags.SuppressNotifications
+                }
                 this.messageLock = true;
                 this.message = await Messages.print(this.textChannel, payload);
                 this.messageLock = false;
             }
         } else {          
+            const payload: DiscordJs.MessageEditOptions = {
+                embeds: embeds,
+                components: components
+            }     
             this.message = await Messages.edit(this.message, payload);
         }
         this.timeout = null;

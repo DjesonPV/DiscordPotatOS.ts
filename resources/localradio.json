@@ -49,5 +49,15 @@
         "url": "http://stream.zeno.fm/55pri4szxwouv",
         "thumbnail": "https://radiolavoiesainte.net/wp-content/uploads/2019/12/cropped-spash-1.png",
         "volume": 0.2
+    },
+    "partyfun": {
+        "name": "Party Fun",
+        "title": "Party Fun - Fun Radio",
+        "description": "La radio digitale Dance de référence",
+        "place": "Neuilly-sur-Seine",
+        "country": "France",
+        "web": "https://www.funradio.fr/radios",
+        "url": "https://hls.funradio.fr/ZWY5NGE4NjlmNzZhM2I2YjEyNzc1MmQ3NWY3YzI5NjkuMTc2MDM4NDg2MA~~/radio/webpHJPXnXrN7B6J7Q8mcqmxP/webradio/party-fun/short/index.m3u8",
+        "thumbnail": "https://images.rtl.fr/~c/800v800/funradio/www/1717324-radio-digitale-party-fun.jpg"
     }
 }

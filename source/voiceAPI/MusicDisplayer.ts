@@ -60,7 +60,7 @@ export class MusicDisplayer {
                     flags:DiscordJs.MessageFlags.SuppressNotifications
                 }
                 this.messageLock = true;
-                this.message = await Messages.print(this.textChannel, payload);
+                this.message = await Messages.print(this.textChannel as Exclude<DiscordJs.TextBasedChannel, DiscordJs.PartialGroupDMChannel>, payload);
                 this.messageLock = false;
             }
         } else {          

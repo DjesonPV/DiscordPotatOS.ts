@@ -21,9 +21,9 @@ export default async function connectionToDiscordAPI():Promise<DiscordJs.Client>
         ]
     });
     
-    client.once("ready", setTikilist);
-    client.once("ready", botIsReady);
-    client.once("ready", disconnectFromAllVoiceChannels);
+    client.once("clientReady", setTikilist);
+    client.once("clientReady", botIsReady);
+    client.once("clientReady", disconnectFromAllVoiceChannels);
     client.login((await getSecrets()).botToken);
     
     function botIsReady():void

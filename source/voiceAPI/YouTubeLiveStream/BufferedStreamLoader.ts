@@ -86,7 +86,7 @@ export default class BufferedStreamLoader {
 					data.push(chunk);
 				});
 				res.on('end', () => {
-					resolve(Buffer.concat(data));
+					resolve( Buffer.concat( data as Array<Uint8Array> ));
 				});
 
 				res.on('error', reject);

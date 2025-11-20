@@ -36,9 +36,10 @@ export default class Messages {
     static async noReplyForThisInterraction(
         interaction: DiscordJs.ChatInputCommandInteraction | DiscordJs.ContextMenuCommandInteraction
     ) {
-        interaction.deferReply({ fetchReply: true })
-            .then((message) => {
-                Messages.delete(message);
+        interaction.deferReply({ withResponse: true })
+            .then((callback) => {
+                if (callback.resource?.message)
+                Messages.delete(callback.resource?.message);
             });
     }
 
@@ -46,8 +47,8 @@ export default class Messages {
     ///> PRINT ON CHANNEL
 
     static async print(
-        channel: DiscordJs.TextBasedChannel,
-        messageOptions: DiscordJs.MessageCreateOptions | string,
+        channel: Exclude<DiscordJs.TextBasedChannel,DiscordJs.PartialGroupDMChannel>,
+        messageOptions: DiscordJs.BaseMessageOptions | string,
         duration: number = 0,
         isAlert: boolean = false
     ) {
@@ -78,7 +79,7 @@ export default class Messages {
             await interaction.followUp('Alert!');
             return interaction.followUp(messagePayload);
         }
-        else return interaction.reply({...messagePayload, fetchReply: true});
+        else return (await interaction.reply({...messagePayload, withResponse: true})).resource?.message;
     }
 
     static async replyEphemeral(
@@ -89,15 +90,15 @@ export default class Messages {
 
         if (typeof (messageOptions) === "string") messageOptions = { content: messageOptions }
 
-        messageOptions.ephemeral = true;
+        messageOptions.flags = 'Ephemeral';
 
         if (interaction.replied) {
             if (newReply) return interaction.followUp(messageOptions);
-            else return interaction.editReply(messageOptions);
+            else return interaction.editReply(messageOptions as DiscordJs.InteractionEditReplyOptions);
         } else if (interaction.deferred) {
             return interaction.followUp(messageOptions);
         }
-        else return interaction.reply({...messageOptions, fetchReply: true});
+        else return (await interaction.reply({...messageOptions, withResponse: true})).resource?.message;
     }
 
     static async reply(
@@ -108,7 +109,7 @@ export default class Messages {
 
         const messagePayload: DiscordJs.InteractionReplyOptions = getMessagePayload(messageOptions, duration, false);
 
-        messagePayload.ephemeral = false;
+        messagePayload.flags = undefined;
 
         if (interaction.replied) {
             return await interaction.followUp(messagePayload)
@@ -118,18 +119,20 @@ export default class Messages {
                 } else return message });
         }
         else if (interaction.deferred) {
-            return await interaction.editReply(messagePayload)
+            return await interaction.editReply(messagePayload as DiscordJs.InteractionEditReplyOptions)
                 .then((message: DiscordJs.Message) => { if (duration > 0) {
                     deleteAfterDuration(message, duration);
                     return null;
                 } else return message});
         }
         else {
-            return await interaction.reply({ ...messagePayload, fetchReply: true })
-                .then((message: DiscordJs.Message) => { if (duration > 0) {
-                    deleteAfterDuration(message, duration);
-                    return null;
-                } else return message});
+            return await interaction.reply({ ...messagePayload, withResponse: true })
+                .then((callback) => { 
+                    const message = callback.resource?.message;
+                    if (duration > 0) {
+                            if(message) deleteAfterDuration(message, duration);
+                        return null;
+                    } else return message});
         }
     }
 
@@ -150,10 +153,12 @@ export default class Messages {
     }
 
     static async startThinking(interaction: TypicalInteraction) {
-        return await interaction.deferReply({fetchReply: true});
+        return (await interaction.deferReply({withResponse: true})).resource?.message;
     }
 
-    static stopThinking(message: DiscordJs.Message<boolean>) {
+    static stopThinking(message: DiscordJs.Message<boolean> | undefined | null) {
+        if (message === undefined) return;
+        if (message === null) return;
         Messages.delete(message);
     }
 
@@ -194,7 +199,7 @@ function getMessagePayload(
 
         if (messageOptions.embeds === undefined)
             messageOptions.embeds = [alertEmbed];
-        else messageOptions.embeds.unshift(alertEmbed);
+        else messageOptions.embeds = [alertEmbed, ...messageOptions.embeds];
 
     } else {
         if (typeof (messageOptions) === 'string') {
@@ -211,7 +216,7 @@ function getMessagePayload(
     if (duration > 0) {
         if (messageOptions.components === undefined)
             messageOptions.components = [durationButtonRow];
-        else messageOptions.components.unshift(durationButtonRow);
+        else messageOptions.components = [durationButtonRow, ...messageOptions.components];
 
     }
 

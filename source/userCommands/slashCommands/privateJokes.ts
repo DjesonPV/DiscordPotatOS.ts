@@ -30,7 +30,7 @@ export const pc: SlashCommandType = {
         let sentenceKey = Math.floor(Math.random() * sentences.length);
     
         Messages.noReplyForThisInterraction(interaction); 
-        Messages.print(interaction.channel, sentences[sentenceKey]);
+        Messages.print(interaction.channel as Exclude<DiscordJs.TextBasedChannel,DiscordJs.PartialGroupDMChannel>, sentences[sentenceKey]);
     }
 };
 
@@ -44,7 +44,7 @@ export const pd: SlashCommandType = {
         if (interaction.channel === null) throw new Error(Lang.get('SC_interactionNotComplete'));
     
         Messages.noReplyForThisInterraction(interaction); 
-        Messages.print(interaction.channel, "Cyril c'est un sacré sacripant");
+        Messages.print(interaction.channel as Exclude<DiscordJs.TextBasedChannel,DiscordJs.PartialGroupDMChannel>, "Cyril c'est un sacré sacripant");
     }
 };
 
@@ -58,7 +58,7 @@ export const pk: SlashCommandType = {
         if (interaction.channel === null) throw new Error(Lang.get('SC_interactionNotComplete'));
     
         Messages.noReplyForThisInterraction(interaction); 
-        Messages.print(interaction.channel, "Quel est le chemin le plus court pour aller vers ton coeur ?");
+        Messages.print(interaction.channel as Exclude<DiscordJs.TextBasedChannel,DiscordJs.PartialGroupDMChannel>, "Quel est le chemin le plus court pour aller vers ton coeur ?");
     }
 };
 
@@ -72,6 +72,6 @@ export const pxtain: SlashCommandType = {
         if (interaction.channel === null) throw new Error(Lang.get('SC_interactionNotComplete'));
     
         Messages.noReplyForThisInterraction(interaction); 
-        Messages.print(interaction.channel, "https://c.tenor.com/Xk5yKpCr96sAAAAd/christmas-tree-hit.gif", 10);
+        Messages.print(interaction.channel as Exclude<DiscordJs.TextBasedChannel,DiscordJs.PartialGroupDMChannel>, "https://c.tenor.com/Xk5yKpCr96sAAAAd/christmas-tree-hit.gif", 10);
     }
 };

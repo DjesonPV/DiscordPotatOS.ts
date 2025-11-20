@@ -1,7 +1,7 @@
 import * as DiscordJs from 'discord.js';
 
 export type SlashCommandType = {
-    description:DiscordJs.SlashCommandBuilder | SpecialSlashCommandBuilder,
+    description:DiscordJs.SlashCommandBuilder | DiscordJs.SlashCommandOptionsOnlyBuilder | DiscordJs.SlashCommandSubcommandsOnlyBuilder,
     action:(interraction:DiscordJs.ChatInputCommandInteraction) => void | Promise<void>
 };
 

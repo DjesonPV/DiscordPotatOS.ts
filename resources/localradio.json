@@ -59,5 +59,25 @@
         "web": "https://www.funradio.fr/radios",
         "url": "https://hls.m6radio.quortex.io/webpHJPXnXrN7B6J7Q8mcqmxP/webradio/partyfun/130/index.m3u8",
         "thumbnail": "https://images.rtl.fr/~c/800v800/funradio/www/1717324-radio-digitale-party-fun.jpg"
+    },
+    "panoramix": {
+        "name": "Panoramix",
+        "title": "Panoramix Radio Station",
+        "description": "La Radio des DJs producteurs",
+        "place": "Montélimar",
+        "country": "France",
+        "web": "https://panoramix-radio-station.com/",
+        "url": "https://radio7.pro-fhi.net:19085/stream",
+        "thumbnail": "https://panoramix-radio-station.com/wp-content/uploads/cropped-LOGO-1LABEL-2017-panoramix-1.png"
+    },
+    "texashighwayradio": {
+        "name": "Texas Highway Radio",
+        "title": "Texas Highway Radio, animée par Georges Carrier",
+        "description": "Pour le meilleur de la pure et authentique Country Music",
+        "place": "Craponne-sur-Arzon",
+        "country": "France",
+        "web": "https://texashighwayradio.com",
+        "url": "listen.radioking.com/radio/475283/stream/531509",
+        "thumbnail": "https://image.radioking.io/radios/475283/logo/a3b3b543-364e-454d-bb05-cb634e33e809.png"
     }
 }

@@ -30,7 +30,7 @@ export class VoiceConnection extends EventEmitter {
             adapterCreator: guild.voiceAdapterCreator,
             selfDeaf: false,
             selfMute: true,
-            daveEncryption: false
+            daveEncryption: true
         });
 
         this.voiceConnection.on('stateChange', async (oldState, newState) => { await this.onStateChange(oldState, newState) });
